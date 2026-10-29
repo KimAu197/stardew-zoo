@@ -1,0 +1,7 @@
+{
+  "hud.payout": "昨天有 {{visitors}} 位游客参观了动物园，门票收入 {{income}}g。",
+  "command.no-save": "请先读取存档。",
+  "command.no-zoos": "你还没有动物园。",
+  "command.zoo-line": "{{building}}：{{animals}} 只动物，{{species}} 个物种 -> {{income}}g",
+  "command.total": "预计总收入：{{income}}g，游客 {{visitors}} 位。"
+}

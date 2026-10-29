@@ -1,0 +1,7 @@
+{
+  "hud.payout": "Yesterday {{visitors}} visitors came to the zoo. Ticket income: {{income}}g.",
+  "command.no-save": "Load a save first.",
+  "command.no-zoos": "You don't have any zoos yet.",
+  "command.zoo-line": "{{building}}: {{animals}} animals, {{species}} species -> {{income}}g",
+  "command.total": "Projected total: {{income}}g from {{visitors}} visitors."
+}
