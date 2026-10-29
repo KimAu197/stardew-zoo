@@ -35,7 +35,7 @@
           "AnimalDoorCloseSound": "doorCreakReverse",
           "IndoorMap": "Barn",
           "IndoorMapType": "StardewValley.AnimalHouse",
-          "MaxOccupants": 8,
+          "MaxOccupants": 4,
           "ValidOccupantTypes": [ "StardewZoo.Zoo" ],
           "AllowAnimalPregnancy": false,
           "IndoorItems": [
@@ -73,7 +73,7 @@
           "AnimalDoorCloseSound": "doorCreakReverse",
           "IndoorMap": "Barn2",
           "IndoorMapType": "StardewValley.AnimalHouse",
-          "MaxOccupants": 12,
+          "MaxOccupants": 8,
           "ValidOccupantTypes": [ "StardewZoo.Zoo" ],
           "AllowAnimalPregnancy": false,
           "IndoorItemMoves": [
@@ -117,7 +117,7 @@
           "AnimalDoorCloseSound": "doorCreakReverse",
           "IndoorMap": "Barn3",
           "IndoorMapType": "StardewValley.AnimalHouse",
-          "MaxOccupants": 16,
+          "MaxOccupants": 12,
           "ValidOccupantTypes": [ "StardewZoo.Zoo" ],
           "AllowAnimalPregnancy": false,
           "IndoorItemMoves": [
