@@ -153,3 +153,8 @@ above.
   `StardewValley.GameData.xml` in the game folder.
 - Removing the mod from a save with zoos leaves invalid buildings/animals
   (same as any mod adding buildings).
+- The reused barn interiors have 4 / 8 / 12 hay troughs, fewer than the zoo
+  capacities 8 / 12 / 16. On days animals stay inside (rain, winter) the extra
+  animals go unfed and lose happiness. Income is unaffected. Fix options:
+  lower capacity to 4 / 8 / 12, or add trough tiles with an `EditMap` patch.
+- With separate wallets in multiplayer, income goes to the host's wallet only.
