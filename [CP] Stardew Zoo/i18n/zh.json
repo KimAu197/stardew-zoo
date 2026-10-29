@@ -1,0 +1,17 @@
+{
+  "building.Zoo.name": "动物园",
+  "building.Zoo.description": "展示珍奇动物。每天都有游客买票参观。可容纳 8 只动物。",
+  "building.BigZoo.name": "大型动物园",
+  "building.BigZoo.description": "更大的动物园。可容纳 12 只动物，门票收入 1.5 倍。",
+  "building.DeluxeZoo.name": "豪华动物园",
+  "building.DeluxeZoo.description": "山谷里最好的动物园。可容纳 16 只动物，门票收入 2 倍。",
+  "animal.Penguin.name": "企鹅",
+  "animal.Penguin.description": "摇摇摆摆，人见人爱。",
+  "animal.Panda.name": "熊猫",
+  "animal.Panda.description": "游客们不远千里来看它。",
+  "animal.Lion.name": "狮子",
+  "animal.Lion.description": "动物园之王。",
+  "animal.Giraffe.name": "长颈鹿",
+  "animal.Giraffe.description": "能看到整个农场。",
+  "animal.missing-building": "需要动物园。请找罗宾建造。"
+}

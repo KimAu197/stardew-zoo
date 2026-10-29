@@ -1,0 +1,12 @@
+{
+  "Name": "[CP] Stardew Zoo",
+  "Author": "Kenzie",
+  "Version": "1.0.0",
+  "Description": "Adds an upgradable zoo building and exotic animals.",
+  "UniqueID": "Kenzie.StardewZoo.CP",
+  "UpdateKeys": [],
+  "ContentPackFor": {
+    "UniqueID": "Pathoschild.ContentPatcher",
+    "MinimumVersion": "2.9.0"
+  }
+}

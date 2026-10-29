@@ -1,0 +1,17 @@
+{
+  "building.Zoo.name": "Zoo",
+  "building.Zoo.description": "Show off exotic animals. Visitors buy tickets every day. Holds 8 animals.",
+  "building.BigZoo.name": "Big Zoo",
+  "building.BigZoo.description": "A bigger zoo. Holds 12 animals and earns 1.5x ticket income.",
+  "building.DeluxeZoo.name": "Deluxe Zoo",
+  "building.DeluxeZoo.description": "The best zoo in the valley. Holds 16 animals and earns 2x ticket income.",
+  "animal.Penguin.name": "Penguin",
+  "animal.Penguin.description": "A waddling crowd-pleaser.",
+  "animal.Panda.name": "Panda",
+  "animal.Panda.description": "Visitors travel from far away to see it.",
+  "animal.Lion.name": "Lion",
+  "animal.Lion.description": "The king of the zoo.",
+  "animal.Giraffe.name": "Giraffe",
+  "animal.Giraffe.description": "Can see over the whole farm.",
+  "animal.missing-building": "Requires a Zoo. Ask Robin to build one."
+}
