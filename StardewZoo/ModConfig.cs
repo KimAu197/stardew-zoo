@@ -39,6 +39,12 @@ public sealed class ModConfig
     /// <summary>How steeply demand falls above the fair price: multiplier = e^(-k * (price/fair - 1)).</summary>
     public double OverpriceElasticity { get; set; } = 1.6;
 
+    /// <summary>Extra visitor demand per piece of furniture placed in a zoo (0.01 = +1%).</summary>
+    public double DecorBonusPerItem { get; set; } = 0.01;
+
+    /// <summary>Cap on the furniture demand bonus (0.1 = at most +10%; 0 disables it).</summary>
+    public double MaxDecorBonus { get; set; } = 0.10;
+
     /// <summary>Daily visitors represented by each visitor NPC walking around at once.</summary>
     public int VisitorsPerOnScreenNpc { get; set; } = 7;
 

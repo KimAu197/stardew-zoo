@@ -341,5 +341,8 @@
   "chat.species.Dinosaur.1": "那……那是真的恐龙吗？！",
   "chat.species.Dinosaur.2": "动物园里有恐龙！他们到底是怎么办到的？",
   "chat.species.Dinosaur.3": "我不知道该惊叹还是该逃跑。",
-  "chat.species.Dinosaur.4": "我儿子肯定不会相信我看到了真的恐龙。"
+  "chat.species.Dinosaur.4": "我儿子肯定不会相信我看到了真的恐龙。",
+  "furniture.blocked.pen": "家具不能放进动物的展区里。",
+  "furniture.blocked.path": "请保持游客步道畅通，这里只能铺地毯。",
+  "furniture.blocked.access": "这里要留给售票亭、告示牌或出入口，不能放家具。"
 }

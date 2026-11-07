@@ -23,6 +23,7 @@ internal sealed class ModEntry : Mod
         this.recording = new RecordingManager(helper, this.Monitor);
         new AnimalCallHandler(helper, this.config);
         new AnimalMovement(helper, this.config);
+        new ZooFurniture(helper, this.Monitor);
 
         helper.Events.GameLoop.GameLaunched += this.OnGameLaunched;
         helper.Events.GameLoop.SaveLoaded += this.OnSaveLoaded;
@@ -319,7 +320,7 @@ internal sealed class ModEntry : Mod
                     animalTypes.Add(animal.type.Value);
             }
 
-            zoos.Add(new ZooSnapshot(buildingType, animalTypes));
+            zoos.Add(new ZooSnapshot(buildingType, animalTypes, ZooFurniture.DecorCount(house)));
             return true;
         });
         return zoos;

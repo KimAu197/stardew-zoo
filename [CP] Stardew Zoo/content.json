@@ -1122,6 +1122,66 @@
           }
         }
       }
+    },
+    {
+      "LogName": "Zoo furniture texture",
+      "Action": "Load",
+      "Target": "Mods/StardewZoo/Furniture",
+      "FromFile": "assets/Furniture.png"
+    },
+    {
+      "LogName": "Zoo furniture",
+      "Action": "EditData",
+      "Target": "Data/Furniture",
+      "Entries": {
+        "StardewZoo.Bench": "StardewZoo.Bench/bench/2 2/2 1/1/650/2/{{i18n:furniture.Bench.name}}/0/Mods/StardewZoo/Furniture/false",
+        "StardewZoo.PenguinStatue": "StardewZoo.PenguinStatue/decor/1 2/1 1/1/2500/2/{{i18n:furniture.PenguinStatue.name}}/2/Mods/StardewZoo/Furniture/false",
+        "StardewZoo.ZooSign": "StardewZoo.ZooSign/decor/2 2/2 1/1/800/2/{{i18n:furniture.ZooSign.name}}/3/Mods/StardewZoo/Furniture/false",
+        "StardewZoo.BalloonStand": "StardewZoo.BalloonStand/decor/1 2/1 1/1/1200/2/{{i18n:furniture.BalloonStand.name}}/5/Mods/StardewZoo/Furniture/false",
+        "StardewZoo.TrashBin": "StardewZoo.TrashBin/decor/1 2/1 1/1/250/2/{{i18n:furniture.TrashBin.name}}/6/Mods/StardewZoo/Furniture/false",
+        "StardewZoo.PottedPalm": "StardewZoo.PottedPalm/decor/1 2/1 1/1/900/2/{{i18n:furniture.PottedPalm.name}}/7/Mods/StardewZoo/Furniture/false"
+      }
+    },
+    {
+      "LogName": "Zoo furniture at Robin's",
+      "Action": "EditData",
+      "Target": "Data/Shops",
+      "TargetField": [
+        "Carpenter",
+        "Items"
+      ],
+      "Entries": {
+        "StardewZoo.Bench": {
+          "Id": "StardewZoo.Bench",
+          "ItemId": "(F)StardewZoo.Bench",
+          "Price": 650
+        },
+        "StardewZoo.PenguinStatue": {
+          "Id": "StardewZoo.PenguinStatue",
+          "ItemId": "(F)StardewZoo.PenguinStatue",
+          "Price": 2500
+        },
+        "StardewZoo.ZooSign": {
+          "Id": "StardewZoo.ZooSign",
+          "ItemId": "(F)StardewZoo.ZooSign",
+          "Price": 800
+        },
+        "StardewZoo.BalloonStand": {
+          "Id": "StardewZoo.BalloonStand",
+          "ItemId": "(F)StardewZoo.BalloonStand",
+          "Price": 1200
+        },
+        "StardewZoo.TrashBin": {
+          "Id": "StardewZoo.TrashBin",
+          "ItemId": "(F)StardewZoo.TrashBin",
+          "Price": 250
+        },
+        "StardewZoo.PottedPalm": {
+          "Id": "StardewZoo.PottedPalm",
+          "ItemId": "(F)StardewZoo.PottedPalm",
+          "Price": 900
+        }
+      }
     }
   ]
 }

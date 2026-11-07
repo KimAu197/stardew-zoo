@@ -1,6 +1,6 @@
 namespace StardewZoo;
 
-public record ZooSnapshot(string BuildingType, IReadOnlyList<string> AnimalTypes);
+public record ZooSnapshot(string BuildingType, IReadOnlyList<string> AnimalTypes, int DecorCount = 0);
 
 public record ZooResult(
     string BuildingType,
@@ -83,7 +83,8 @@ public static class ZooIncome
         if (zoo.AnimalTypes.Count == 0)
             return 0;
         int price = ticketPrice ?? config.TicketPrice;
-        return BaseDemand(zoo, config) * PriceFactor(price, FairValue(zoo, config), config) * RatingFactor(averageRating);
+        return BaseDemand(zoo, config) * PriceFactor(price, FairValue(zoo, config), config) * RatingFactor(averageRating)
+            * ZooDecor.DemandMultiplier(zoo.DecorCount, config.DecorBonusPerItem, config.MaxDecorBonus);
     }
 
     public static int ExpectedVisitors(ZooSnapshot zoo, ModConfig config, double averageRating, int? ticketPrice = null) =>

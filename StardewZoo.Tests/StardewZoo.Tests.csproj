@@ -17,6 +17,8 @@
     <Compile Include="..\StardewZoo\AnimalBrain.cs" Link="Linked\AnimalBrain.cs" />
     <Compile Include="..\StardewZoo\VisitorChat.cs" Link="Linked\VisitorChat.cs" />
     <Compile Include="..\StardewZoo\VisitorSpawnPlanner.cs" Link="Linked\VisitorSpawnPlanner.cs" />
+    <Compile Include="..\StardewZoo\ZooDecor.cs" Link="Linked\ZooDecor.cs" />
+    <Compile Include="..\StardewZoo\FurnitureLayout.cs" Link="Linked\FurnitureLayout.cs" />
   </ItemGroup>
 
   <ItemGroup>

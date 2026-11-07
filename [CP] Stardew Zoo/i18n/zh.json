@@ -39,5 +39,11 @@
   "animal.Deer.description": "森林里长着分叉鹿角的纤细食草动物。",
   "animal.NightHeron.name": "夜鹫",
   "animal.NightHeron.description": "水域展区里头顶深色、嘴巴很长的敦实水鸟。",
-  "animal.missing-building": "需要动物园。请找罗宾建造。"
+  "animal.missing-building": "需要动物园。请找罗宾建造。",
+  "furniture.Bench.name": "动物园长椅",
+  "furniture.PenguinStatue.name": "企鹅雕像",
+  "furniture.ZooSign.name": "动物园招牌",
+  "furniture.BalloonStand.name": "气球摊",
+  "furniture.TrashBin.name": "公园垃圾桶",
+  "furniture.PottedPalm.name": "盆栽棕榈"
 }

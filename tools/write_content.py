@@ -6,6 +6,7 @@ from pathlib import Path
 from PIL import Image
 
 from animal_sizes import CLIMBERS, FLIERS, SWIMMERS, frame
+from draw_furniture import content_changes as furniture_changes
 
 ROOT = Path(__file__).resolve().parent.parent
 ASSETS = ROOT / "[CP] Stardew Zoo" / "assets"
@@ -207,6 +208,7 @@ def main():
                     for name, purchase, shop, days in ANIMALS
                 },
             },
+            *furniture_changes(),
         ],
     }
     path = ROOT / "[CP] Stardew Zoo" / "content.json"

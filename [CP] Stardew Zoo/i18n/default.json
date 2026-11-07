@@ -39,5 +39,11 @@
   "animal.Deer.description": "A slender forest grazer with branching antlers.",
   "animal.NightHeron.name": "Night Heron",
   "animal.NightHeron.description": "A stocky water bird with a dark cap and a long bill.",
-  "animal.missing-building": "Requires a Zoo. Ask Robin to build one."
+  "animal.missing-building": "Requires a Zoo. Ask Robin to build one.",
+  "furniture.Bench.name": "Zoo Bench",
+  "furniture.PenguinStatue.name": "Penguin Statue",
+  "furniture.ZooSign.name": "Zoo Sign",
+  "furniture.BalloonStand.name": "Balloon Stand",
+  "furniture.TrashBin.name": "Park Trash Bin",
+  "furniture.PottedPalm.name": "Potted Palm"
 }

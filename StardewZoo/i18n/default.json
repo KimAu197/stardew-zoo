@@ -341,5 +341,8 @@
   "chat.species.Dinosaur.1": "Is... is that a real dinosaur?!",
   "chat.species.Dinosaur.2": "A dinosaur in a zoo! How did they even manage that?",
   "chat.species.Dinosaur.3": "I'm not sure whether to be amazed or run away.",
-  "chat.species.Dinosaur.4": "My son is never going to believe I saw a real dinosaur."
+  "chat.species.Dinosaur.4": "My son is never going to believe I saw a real dinosaur.",
+  "furniture.blocked.pen": "Furniture can't go inside an animal habitat.",
+  "furniture.blocked.path": "Keep the visitor path clear. Only rugs can go here.",
+  "furniture.blocked.access": "This spot has to stay clear for a booth, sign or doorway."
 }
