@@ -9,13 +9,25 @@ namespace StardewZoo;
 internal sealed class VisitorManager
 {
     private const string NamePrefix = "StardewZooVisitor_";
+
+    /// <summary>Vanilla non-villager sheets with a full 16x32 four-direction walk cycle in rows 0-3.</summary>
+    private static readonly string[] Textures =
+    {
+        "Characters/SafariGuy",
+        "Characters/Marcello",
+        "Characters/Morris",
+        "Characters/Birdie"
+    };
+
     private int nextId;
     private int projectedVisitors;
     private readonly IMonitor monitor;
+    private readonly ITranslationHelper translation;
 
-    public VisitorManager(IMonitor monitor)
+    public VisitorManager(IMonitor monitor, ITranslationHelper translation)
     {
         this.monitor = monitor;
+        this.translation = translation;
     }
 
     public void SetProjection(int visitors) => this.projectedVisitors = visitors;
@@ -60,14 +72,13 @@ internal sealed class VisitorManager
 
     private void SpawnOne(GameLocation location)
     {
-        int variant = this.nextId % 4;
-        string asset = $"Characters/StardewZooVisitor{variant}";
+        string asset = PickTexture(location);
         var sprite = new AnimatedSprite(asset, 0, 16, 32);
         var npc = new NPC(sprite, new Vector2(18 * Game1.tileSize, 28 * Game1.tileSize), 0, NamePrefix + this.nextId)
         {
             Breather = false,
             HideShadow = false,
-            displayName = "Visitor",
+            displayName = this.translation.Get("visitor.name"),
             farmerPassesThrough = true,
             Speed = 2
         };
@@ -103,6 +114,19 @@ internal sealed class VisitorManager
             npc.Position = new Vector2(x * Game1.tileSize, y * Game1.tileSize);
             this.WalkLoop(npc, location, waypoint + 1);
         }
+    }
+
+    /// <summary>Prefers the sheet fewest current visitors here are using, so the same face rarely appears twice.</summary>
+    private static string PickTexture(GameLocation location)
+    {
+        var inUse = location.characters
+            .Where(IsVisitor)
+            .Select(npc => npc.Sprite?.textureName.Value)
+            .ToList();
+        return Textures
+            .OrderBy(texture => inUse.Count(used => used == texture))
+            .ThenBy(_ => Game1.random.Next())
+            .First();
     }
 
     private static bool IsVisitor(NPC? npc) => npc?.Name?.StartsWith(NamePrefix, StringComparison.Ordinal) == true;

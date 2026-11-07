@@ -35,5 +35,6 @@
   "record.silent": "The recording was silent, so the old sound was kept. On macOS, allow Terminal (SMAPI runs inside it) under System Settings > Privacy & Security > Microphone, then restart the game. Or drop {{file}} into the sounds folder.",
   "record.drop-wav": "No microphone recorder is available. The sounds folder is open: drop in a WAV named {{file}} and it loads automatically. (Optional: brew install ffmpeg.)",
   "record.invalid": "{{file}} couldn't be used ({{error}}). Save it as a 16-bit PCM WAV.",
-  "record.reloaded": "Loaded the new {{file}} for {{animal}}."
+  "record.reloaded": "Loaded the new {{file}} for {{animal}}.",
+  "visitor.name": "Visitor"
 }

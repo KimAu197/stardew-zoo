@@ -20,12 +20,6 @@
       "FromFile": "assets/StardewZoo.tmx"
     },
     {
-      "LogName": "Zoo visitors",
-      "Action": "Load",
-      "Target": "Characters/StardewZooVisitor0, Characters/StardewZooVisitor1, Characters/StardewZooVisitor2, Characters/StardewZooVisitor3",
-      "FromFile": "assets/{{TargetWithoutPath}}.png"
-    },
-    {
       "LogName": "Zoo buildings",
       "Action": "EditData",
       "Target": "Data/Buildings",

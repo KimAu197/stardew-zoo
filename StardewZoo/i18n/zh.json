@@ -35,5 +35,6 @@
   "record.silent": "录到的是静音，已保留原来的叫声。macOS 上请在 系统设置 > 隐私与安全性 > 麦克风 里允许“终端”（SMAPI 在终端里运行），然后重启游戏。也可以把 {{file}} 放进 sounds 文件夹。",
   "record.drop-wav": "没有可用的录音方式。已打开 sounds 文件夹：放入名为 {{file}} 的 wav 文件即可自动载入。（可选：brew install ffmpeg）",
   "record.invalid": "{{file}} 无法使用（{{error}}）。请保存为 16 位 PCM 格式的 wav。",
-  "record.reloaded": "已为 {{animal}} 载入新的 {{file}}。"
+  "record.reloaded": "已为 {{animal}} 载入新的 {{file}}。",
+  "visitor.name": "游客"
 }

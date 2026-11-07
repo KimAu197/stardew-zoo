@@ -27,7 +27,6 @@ ANIMALS = [
 
 TEXTURES = [
     "Zoo", "BigZoo", "DeluxeZoo", "zoo_tiles",
-    "Visitor0", "Visitor1", "Visitor2", "Visitor3",
 ]
 for name, *_ in ANIMALS:
     TEXTURES += [name, f"Baby{name}", f"{name}Shop"]
@@ -146,12 +145,6 @@ def main():
                 "Action": "Load",
                 "Target": "Maps/StardewZoo",
                 "FromFile": "assets/StardewZoo.tmx",
-            },
-            {
-                "LogName": "Zoo visitors",
-                "Action": "Load",
-                "Target": "Characters/StardewZooVisitor0, Characters/StardewZooVisitor1, Characters/StardewZooVisitor2, Characters/StardewZooVisitor3",
-                "FromFile": "assets/{{TargetWithoutPath}}.png",
             },
             {
                 "LogName": "Zoo buildings",
