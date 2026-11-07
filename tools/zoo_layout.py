@@ -13,6 +13,12 @@ HABITATS = {
     "Prehistoric": (26, 23, 9, 3),
 }
 
+# Tree bases tagged with the ZooPerch Back-tile property (value = perch height in tiles).
+ZOO_PERCHES = {
+    "Jungle": ((27, 16), (31, 15), (34, 17)),
+    "Forest": ((4, 25), (10, 25), (7, 24)),
+}
+
 PLAZA = (16, 13, 6, 6)
 BOOTH = (17, 14)
 BOARD = (19, 14)

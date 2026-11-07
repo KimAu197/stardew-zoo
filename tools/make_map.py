@@ -1,9 +1,15 @@
-"""Build the zoo interior TMX from vanilla tilesheets with corner-based autotiling.
+"""Build the zoo interior TMX.
 
-The map is described as a terrain grid (one letter per cell) plus fenced pen
-rectangles. Every Back tile is picked from the terrain at its four corners, so
-grass, dirt, dark grass, snow/ice and water blend with vanilla transition tiles.
-Custom zoo_tiles is used only for the booth, board, studio, plaques and banner.
+Ground is a vertex terrain grid blended per pixel by draw_tiles.TerrainBlender
+(vanilla grass/dark grass/water textures plus custom paving, sand, shallow water,
+snow, ice, savanna grass, mud and volcanic ground). Every map cell holds a stack
+of components per layer; stacks are composited into zoo_tiles so ground decals
+can live on Back (under the animals) and canopies can overlap fences.
+
+Layering rules:
+  - pens never get Buildings tiles (HabitatKeeper drops animals on any pen tile);
+    a prop's bottom row is baked into Back, upper rows go on Front, canopies on AlwaysFront;
+  - plaza / park props use Buildings for their footprint and Front above it.
 
 Usage: python3 tools/make_map.py
 """
@@ -11,40 +17,18 @@ Usage: python3 tools/make_map.py
 import random
 from pathlib import Path
 
-from draw_tiles import (
-    ACTION_TILES,
-    COLS,
-    ROWS,
-    TS,
-    T_BOARD_BOT_L,
-    T_BOARD_BOT_R,
-    T_BOARD_TOP_L,
-    T_BOARD_TOP_R,
-    T_BOOTH_AWN_L,
-    T_BOOTH_AWN_M,
-    T_BOOTH_AWN_R,
-    T_BOOTH_CTR_L,
-    T_BOOTH_CTR_M,
-    T_BOOTH_CTR_R,
-    T_PLAQUE_DINO,
-    T_PLAQUE_FOREST,
-    T_PLAQUE_ICE,
-    T_PLAQUE_JUNGLE,
-    T_PLAQUE_SAVANNA,
-    T_PLAQUE_WATER,
-    T_STUDIO_BOT_L,
-    T_STUDIO_BOT_R,
-    T_STUDIO_TOP_L,
-    T_STUDIO_TOP_R,
-    T_ZOO_BANNER,
-)
-from zoo_layout import BOARD, BOOTH, HABITATS, HAY, MAP_H, MAP_W, PLAZA, STUDIO, WARP_TILES
+from draw_tiles import OUT as ZOO_PNG
+from draw_tiles import PRIORITY, TerrainBlender, ZooSheet, build_objects, hnoise, save_preview
+from zoo_layout import (BOARD, BOOTH, HABITATS, HAY, MAP_H, MAP_W, STUDIO, WARP_TILES, ZOO_PERCHES)
 
 ROOT = Path(__file__).resolve().parent.parent
 ASSETS = ROOT / "[CP] Stardew Zoo" / "assets"
+LAYERS = ("Back", "Buildings", "Front", "AlwaysFront")
 
-# Harmless open-grass rectangle (x y w h); AnimalHouse logs a parse warning without it.
+# Harmless open rectangle (x y w h); AnimalHouse logs a parse warning without it.
 PRODUCE_AREA = (13, 13, 2, 5)
+
+PERCH_HEIGHT = {"palm": 3, "oak": 4, "snag": 2.5}
 
 
 class Sheet:
@@ -57,65 +41,16 @@ class Sheet:
         self.tilecount = (width // 16) * (height // 16)
         self.firstgid = 1
 
-    def gid(self, local):
-        return 0 if local is None else self.firstgid + local
 
+VANILLA_SHEETS = [
+    Sheet("outdoors", "spring_outdoorsTileSheet", 400, 1264, 25),
+    Sheet("winter", "winter_outdoorsTileSheet", 400, 1264, 25),
+    Sheet("island", "island_tilesheet_1", 512, 1040, 32),
+    Sheet("town", "spring_town", 512, 1152, 32),
+]
 
-def build_sheets():
-    sheets = [
-        Sheet("outdoors", "spring_outdoorsTileSheet", 400, 1264, 25),
-        Sheet("winter", "winter_outdoorsTileSheet", 400, 1264, 25),
-        Sheet("island", "island_tilesheet_1", 512, 1040, 32),
-        Sheet("town", "spring_town", 512, 1152, 32),
-        Sheet("zoo_tiles", "zoo_tiles", COLS * TS, ROWS * TS, COLS),
-    ]
-    gid = 1
-    for s in sheets:
-        s.firstgid = gid
-        gid += s.tilecount
-    return {s.name: s for s in sheets}
-
-
-# ---------------------------------------------------------------------------
-# Vanilla tile tables. Corner keys are TL TR BL BR; "X" = the overlay terrain.
-# ---------------------------------------------------------------------------
-
-# spring_outdoorsTileSheet grass <-> dirt blob (Forest.tmx pond shore around 17-22,25-34;
-# Town.tmx 70-71,20). Corners were verified by pixel sampling the sheet.
-DIRT_ON_GRASS = {
-    "...X": [200], "..XX": [201, 205], "..X.": [203],
-    ".X.X": [225], "X.X.": [228],
-    ".X..": [250], "XX..": [251, 230], "X...": [253],
-    ".XXX": [202], "X.XX": [177], "XXX.": [178], "XX.X": [252],
-    "XXXX": [226, 226, 227, 176],
-    "X..X": [226], ".XX.": [226],
-}
-GRASS_FILL = [175] * 10 + [150] * 3 + [151, 152]
-
-# spring_outdoorsTileSheet light grass <-> dark grass (Town.tmx 59-71,11-20; Forest.tmx 13-26,12-18).
-DARK_ON_GRASS = {
-    "...X": [325], "..XX": [326], "..X.": [327],
-    ".X.X": [350], "X.X.": [352],
-    ".X..": [375], "XX..": [376], "X...": [377],
-    ".XXX": [328], "XXX.": [353], "X.XX": [378], "XX.X": [403],
-    "XXXX": [351] * 6 + [329, 380, 304, 300],
-    "X..X": [351], ".XX.": [351],
-}
-
-# winter_outdoorsTileSheet uses the same blob layout: snow ("grass") <-> ice ("dirt").
-ICE_ON_SNOW = dict(DIRT_ON_GRASS, XXXX=[226, 227, 226, 206])
-SNOW_FILL = [175] * 6 + [150, 151, 152, 254]
-
-# Water body (Forest.tmx pond, e.g. 23-28,25-34). Plain frames 1229/1230/1231/1306 differ
-# only in speckles; the Water=T flag is left off so animals can wade, so we animate instead.
-WATER = 1229
+# --- vanilla tiles ---------------------------------------------------------
 WATER_FRAMES = [1229, 1230, 1231, 1306]
-WATER_DECOR = [1274, 1274, 1322, 1249, 1324]
-LILY_PAD = 1293                      # Forest.tmx Buildings, animated 1293-1296 @500ms
-LILY_PAD_FRAMES = [1293, 1294, 1295, 1296]
-LILY_FLOWER = 1318                   # animated 1318-1321 @450ms
-LILY_FLOWER_FRAMES = [1318, 1319, 1320, 1321]
-WATER_ROCK = 1252
 
 # spring_town wooden picket fence (Town.tmx 59-68,13-19 and 95-102,83-90; 12-17,55-56).
 # Each piece is (Buildings tile, Front tile drawn one row above, or None).
@@ -124,42 +59,45 @@ FENCE_TOP = (833, 801)
 FENCE_TR = (834, 802)
 FENCE_L = (864, None)
 FENCE_R = (866, None)
-FENCE_BL_UPPER = (896, None)         # left post just above the bottom-left corner
+FENCE_BL_UPPER = (896, None)
 FENCE_BR_UPPER = (898, None)
 FENCE_BL = (928, None)
 FENCE_BR = (930, None)
-FENCE_BOTTOM = (929, 897)            # Front 897 is the picket tops on the row above
-FENCE_GATE_L = (899, 867)            # braced end post (Town.tmx 64-65,18-19 pair)
+FENCE_BOTTOM = (929, 897)
+FENCE_GATE_L = (899, 867)
 FENCE_GATE_R = (900, 868)
 
 # spring_town street lamp (Town.tmx 24,50-53): Buildings base, Front post/head above.
 LAMP_BASE, LAMP_POST, LAMP_MID, LAMP_HEAD = 1003, 971, 939, 907
-# spring_town cobble paving (Town.tmx 19-22,46-50).
-COBBLE = [736, 737, 768, 769, 736, 768, 770]
 
 # spring_outdoorsTileSheet oak trees: 3x4 canopy, trunk, root base.
 OAK_A = ((0, 1, 2), (25, 26, 27), (50, 51, 52), (75, 76, 77), 101, 126)
 OAK_B = ((3, 4, 5), (28, 29, 30), (53, 54, 55), (78, 79, 80), 104, 129)
 BORDER_BUSH = 163
-FLOWERS = [151, 152]
 
 # island_tilesheet_1 palm and ferns.
 PALM = ((364, 365, 366), (396, 397, 398), 429, 461)
 FERNS = [369, 370]
-JUNGLE_LEAVES = [30, 31]
 
 
-def zeros():
-    return [[0] * MAP_W for _ in range(MAP_H)]
+def O(t):
+    return ("outdoors", t)
 
 
-def fence_rect(rect):
-    x, y, w, h = rect
-    return x - 1, y - 1, w + 2, h + 2
+def T(t):
+    return ("town", t)
 
 
-def build_terrain():
-    """One letter per cell: g grass, d dirt, k dark grass, w water, c cobble, n snow, i ice."""
+def I(t):
+    return ("island", t)
+
+
+# ---------------------------------------------------------------------------
+# terrain
+# ---------------------------------------------------------------------------
+
+def build_cells():
+    """One letter per cell (see draw_tiles.PRIORITY)."""
     t = [["g"] * MAP_W for _ in range(MAP_H)]
 
     def fill(x0, y0, x1, y1, c):
@@ -167,299 +105,453 @@ def build_terrain():
             for x in range(x0, x1 + 1):
                 t[y][x] = c
 
-    # visitor loop: outer ring, three cross rows, and a 2-wide central aisle to the door
     for y in (1, 11, 21, 28):
-        fill(1, y, 36, y, "d")
-    fill(1, 1, 1, 28, "d")
-    fill(36, 1, 36, 28, "d")
-    fill(18, 1, 19, MAP_H - 1, "d")
+        fill(1, y, 36, y, "p")
+    fill(1, 1, 1, 28, "p")
+    fill(36, 1, 36, 28, "p")
+    fill(18, 1, 19, MAP_H - 1, "p")
+    fill(14, 12, 23, 20, "p")
+    fill(15, 13, 22, 19, "q")
 
-    # plaza: cobble square inside a dirt apron
-    px, py, pw, ph = PLAZA
-    fill(px - 1, py - 1, px + pw, py + ph, "d")
-    fill(px, py, px + pw - 1, py + ph - 1, "c")
-
-    ix, iy, iw, ih = HABITATS["Ice"]
-    fill(ix, iy, ix + iw - 1, iy + ih - 1, "n")
-    fill(ix + 2, iy + 2, ix + 6, iy + 4, "i")
-    fill(ix + 3, iy + 1, ix + 5, iy + 1, "i")
-
-    wx, wy, ww, wh = HABITATS["Water"]
-    fill(wx, wy, wx + ww - 1, wy + wh - 1, "d")
-    fill(wx + 2, wy + 2, wx + 6, wy + 4, "w")
-    fill(wx + 1, wy + 3, wx + 7, wy + 3, "w")
-    fill(wx + 3, wy + 1, wx + 5, wy + 1, "w")
-
-    sx, sy, sw, sh = HABITATS["Savanna"]
-    fill(sx + 1, sy + 2, sx + 7, sy + 4, "d")
-    fill(sx + 3, sy + 1, sx + 6, sy + 1, "d")
-
-    for name in ("Jungle", "Forest"):
-        x, y, w, h = HABITATS[name]
-        fill(x, y, x + w - 1, y + h - 1, "k")
-
-    x, y, w, h = HABITATS["Prehistoric"]
-    fill(x, y, x + w - 1, y + h - 1, "d")
+    base = {"Ice": "n", "Water": "g", "Savanna": "y", "Jungle": "k", "Forest": "g", "Prehistoric": "v"}
+    for name, (x, y, w, h) in HABITATS.items():
+        fill(x, y, x + w - 1, y + h - 1, base[name])
     return t
 
 
-def corner_mask(t, x, y, test, rule):
-    """Corner key for cell (x, y). rule='any' grows the terrain, 'all' shrinks it."""
-    key = []
-    for vx, vy in ((x, y), (x + 1, y), (x, y + 1), (x + 1, y + 1)):
-        cells = [
-            t[cy][cx]
-            for cx, cy in ((vx - 1, vy - 1), (vx, vy - 1), (vx - 1, vy), (vx, vy))
-            if 0 <= cx < MAP_W and 0 <= cy < MAP_H
-        ]
-        hits = [test(c) for c in cells]
-        key.append("X" if (any(hits) if rule == "any" else all(hits)) else ".")
-    return "".join(key)
+def build_vertices(cells):
+    V = [["g"] * (MAP_W + 1) for _ in range(MAP_H + 1)]
+    for vy in range(MAP_H + 1):
+        for vx in range(MAP_W + 1):
+            around = [cells[cy][cx] for cx, cy in ((vx - 1, vy - 1), (vx, vy - 1), (vx - 1, vy), (vx, vy))
+                      if 0 <= cx < MAP_W and 0 <= cy < MAP_H]
+            V[vy][vx] = max(around, key=PRIORITY.index)
+    return V
 
 
-def build_layers(S):
-    out, win, isl, town, zoo = (
-        S["outdoors"], S["winter"], S["island"], S["town"], S["zoo_tiles"]
-    )
-    back, buildings, front, always = zeros(), zeros(), zeros(), zeros()
+def blob(V, pen, cx, cy, rx, ry, terrain, seed=0):
+    """Paint an organic ellipse of vertices strictly inside a pen."""
+    x, y, w, h = HABITATS[pen]
+    for vy in range(y + 1, y + h):
+        for vx in range(x + 1, x + w):
+            r = ((vx - cx) / rx) ** 2 + ((vy - cy) / ry) ** 2 + 0.18 * hnoise(vx, vy, seed)
+            if r <= 1:
+                V[vy][vx] = terrain
+
+
+def paint_pens(V):
+    blob(V, "Ice", 8.5, 6.5, 3.6, 2.5, "i", 1)
+    blob(V, "Ice", 9.0, 6.6, 2.2, 1.6, "w", 2)
+
+    blob(V, "Water", 30.6, 6.4, 4.6, 3.0, "s", 3)
+    blob(V, "Water", 30.2, 6.5, 3.7, 2.4, "h", 4)
+    blob(V, "Water", 31.6, 6.4, 3.3, 2.1, "w", 5)
+
+    blob(V, "Savanna", 5.5, 16.6, 2.3, 1.4, "r", 6)
+    blob(V, "Savanna", 10.2, 14.4, 1.4, 1.0, "r", 7)
+    blob(V, "Savanna", 9.6, 17.3, 2.0, 1.2, "h", 8)
+    blob(V, "Savanna", 9.6, 17.4, 1.3, 0.7, "w", 9)
+
+    blob(V, "Jungle", 30.5, 17.3, 2.2, 1.1, "m", 10)
+    blob(V, "Jungle", 28.3, 14.5, 1.3, 0.9, "m", 11)
+
+    blob(V, "Forest", 6.5, 24.6, 2.6, 1.0, "k", 12)
+    blob(V, "Forest", 10.6, 24.4, 1.4, 1.0, "k", 13)
+
+    blob(V, "Prehistoric", 29.0, 24.5, 2.2, 1.0, "c", 14)
+    blob(V, "Prehistoric", 33.5, 25.0, 1.6, 1.0, "c", 15)
+
+
+# ---------------------------------------------------------------------------
+# map with component stacks
+# ---------------------------------------------------------------------------
+
+class ZooMap:
+    def __init__(self, zs: ZooSheet):
+        self.zs = zs
+        self.cells = {n: [[[] for _ in range(MAP_W)] for _ in range(MAP_H)] for n in LAYERS}
+        self.used = set()
+        self.lamps = []
+
+    def put(self, layer, x, y, comp):
+        if not (0 <= x < MAP_W and 0 <= y < MAP_H) or comp is None:
+            return
+        cell = self.cells[layer][y][x]
+        if layer == "Buildings":
+            cell[:] = [comp]
+        else:
+            cell.append(comp)
+
+    def obj(self, name, x, y, rows):
+        """Place a registered object; rows lists the layer per object row (None = skip)."""
+        grid = self.zs.objects[name]
+        for r, row in enumerate(grid):
+            layer = rows[r] if isinstance(rows, (list, tuple)) else rows
+            for c, tid in enumerate(row):
+                if tid is None or layer is None:
+                    continue
+                self.put(layer, x + c, y + r, ("zoo", tid))
+                self.used.add((x + c, y + r))
+
+    def tid(self, name, r=0, c=0):
+        return ("zoo", self.zs.objects[name][r][c])
+
+    # --- vanilla multi-tile props ---
+    def oak(self, x, y, oak, in_pen):
+        rows, trunk, root = oak[:4], oak[4], oak[5]
+        for i, row in enumerate(rows):
+            for dx, t in enumerate(row):
+                self.put("AlwaysFront" if i < 3 else "Front", x - 1 + dx, y - 5 + i, O(t))
+        if in_pen:
+            self.put("Front", x, y - 1, O(trunk))
+            self.put("Back", x, y, O(root))
+        else:
+            self.put("Buildings", x, y - 1, O(trunk))
+            self.put("Buildings", x, y, O(root))
+        self.used.update({(x, y), (x, y - 1)})
+
+    def palm(self, x, y, vines=False):
+        canopy, mid, trunk, base = PALM
+        for dx in range(3):
+            self.put("AlwaysFront", x - 1 + dx, y - 3, I(canopy[dx]))
+            self.put("Front", x - 1 + dx, y - 2, I(mid[dx]))
+            if vines and dx != 1:
+                self.put("Front", x - 1 + dx, y - 2, self.tid("hanging_vine"))
+        self.put("Front", x, y - 1, I(trunk))
+        self.put("Back", x, y, I(base))
+        self.used.update({(x, y), (x, y - 1)})
+
+    def town_lamp(self, x, y):
+        self.put("Buildings", x, y, T(LAMP_BASE))
+        self.put("Front", x, y - 1, T(LAMP_POST))
+        self.put("Front", x, y - 2, T(LAMP_MID))
+        self.put("Front", x, y - 3, T(LAMP_HEAD))
+        self.lamps.append((x, y - 3))
+        self.used.add((x, y))
+
+    def zoo_lamp(self, x, y):
+        self.obj("lamp", x, y - 2, ["Front", "Front", "Buildings"])
+        self.lamps.append((x, y - 2))
+
+    # --- resolve to gids ---
+    def resolve(self):
+        out = {}
+        for layer in LAYERS:
+            grid = []
+            for row in self.cells[layer]:
+                line = []
+                for stack in row:
+                    if not stack:
+                        line.append(None)
+                    elif len(stack) == 1:
+                        line.append(stack[0])
+                    else:
+                        line.append(self.zs.composite(stack))
+                grid.append(line)
+            out[layer] = grid
+        return out
+
+
+def scatter(m, rng, pen, decals, count, ok, layer="Back"):
+    """Drop single-tile decals on free cells of a pen whose terrain passes ok(corners)."""
+    x, y, w, h = HABITATS[pen]
+    spots = [(cx, cy) for cy in range(y, y + h) for cx in range(x, x + w)
+             if (cx, cy) not in m.used and ok(m.corners[cy][cx])]
+    rng.shuffle(spots)
+    for i, (cx, cy) in enumerate(spots[:count]):
+        m.put(layer, cx, cy, m.tid(decals[i % len(decals)]))
+        m.used.add((cx, cy))
+
+
+def fences(m):
+    for name, (x, y, w, h) in HABITATS.items():
+        left, right, top, bottom = x - 1, x + w, y - 1, y + h
+        gate = x + w // 2
+
+        def piece(px, py, p):
+            m.put("Buildings", px, py, T(p[0]))
+            if p[1] is not None:
+                m.put("Front", px, py - 1, T(p[1]))
+
+        for px in range(left, right + 1):
+            if px == left:
+                piece(px, top, FENCE_TL)
+                piece(px, bottom, FENCE_BL)
+            elif px == right:
+                piece(px, top, FENCE_TR)
+                piece(px, bottom, FENCE_BR)
+            else:
+                piece(px, top, FENCE_TOP)
+                piece(px, bottom, FENCE_GATE_L if px == gate else FENCE_GATE_R if px == gate + 1 else FENCE_BOTTOM)
+        for py in range(top + 1, bottom):
+            upper = py == bottom - 1
+            piece(left, py, FENCE_BL_UPPER if upper else FENCE_L)
+            piece(right, py, FENCE_BR_UPPER if upper else FENCE_R)
+
+
+def pens(m, rng):
+    allin = lambda *ts: (lambda cs: all(c in ts for c in cs))
+
+    # Ice: snow field, frozen pond with an open pool, igloo, ice blocks, drifts.
+    m.obj("igloo", 4, 3, ["Front", "Back"])
+    m.obj("ice_block", 11, 3, "Back")
+    m.obj("icy_rock", 4, 8, "Back")
+    m.obj("ice_block", 3, 6, "Back")
+    m.obj("ice_block", 10, 3, "Back")
+    m.obj("icy_rock", 11, 8, "Back")
+    m.obj("icy_rock", 7, 3, "Back")
+    scatter(m, rng, "Ice", ["snow_drift", "snow_drift", "ice_block"], 7, allin("n"))
+    scatter(m, rng, "Ice", ["ice_crack"], 4, allin("i"))
+
+    # Water: grass -> sand beach -> shallow wading shelf (west) -> deep animated pond.
+    m.obj("reeds", 27, 3, ["Front", "Back"])
+    m.obj("reeds", 34, 7, ["Front", "Back"])
+    m.obj("reeds", 26, 7, ["Front", "Back"])
+    m.obj("basking_rock", 32, 4, "Back")
+    m.obj("water_rock", 28, 7, "Back")
+    scatter(m, rng, "Water", ["lily", "lily_flower"], 4,
+            lambda cs: "w" in cs and any(c != "w" for c in cs))
+    scatter(m, rng, "Water", ["grass_tuft"], 3, allin("g", "s"))
+
+    # Savanna: dry grass, red earth, watering hole, acacia, termite mounds.
+    m.obj("acacia", 7, 12, ["AlwaysFront", "AlwaysFront", "Front", "Back"])
+    m.obj("termite", 4, 13, ["Front", "Back"])
+    m.obj("termite", 11, 16, ["Front", "Back"])
+    m.obj("savanna_rock", 6, 18, "Back")
+    m.obj("savanna_rock", 3, 15, "Back")
+    scatter(m, rng, "Savanna", ["tuft_a", "tuft_b"], 9, allin("y", "r"))
+
+    # Jungle: palms (climbable), mud, ferns, leaf litter, vines, flowers.
+    for (px, py) in ZOO_PERCHES["Jungle"]:
+        m.palm(px, py, vines=True)
+    for fx, fy in ((29, 13), (33, 13), (26, 18), (29, 16)):
+        m.put("Back", fx, fy, I(FERNS[(fx + fy) % 2]))
+        m.used.add((fx, fy))
+    scatter(m, rng, "Jungle", ["litter_a", "litter_b", "vine", "tropical_flower"], 9, allin("k", "m"))
+
+    # Forest: two oaks + a dead snag for owls, fallen log, stump, moss, mushrooms.
+    (ax, ay), (bx, by), (sx, sy) = ZOO_PERCHES["Forest"]
+    m.oak(ax, ay, OAK_A, in_pen=True)
+    m.oak(bx, by, OAK_B, in_pen=True)
+    m.obj("snag", sx, sy - 2, ["Front", "Front", "Back"])
+    m.obj("log", 5, 25, "Back")
+    m.obj("stump", 11, 24, "Back")
+    scatter(m, rng, "Forest", ["moss", "mushrooms", "litter_a", "moss"], 6, allin("g", "k"))
+
+    # Prehistoric: volcanic ground, cracked earth, giant ferns, bones, steaming vent.
+    m.obj("giant_fern", 26, 22, ["Front", "Back"])
+    m.obj("giant_fern", 33, 23, ["Front", "Back"])
+    m.obj("vent", 31, 23, ["Front", "Back"])
+    m.obj("ribcage", 28, 25, "Back")
+    m.obj("skull", 33, 25, "Back")
+    m.obj("bone", 30, 24, "Back")
+    scatter(m, rng, "Prehistoric", ["volcanic_rock_a", "volcanic_rock_b", "cracks"], 5, allin("v", "c"))
+
+
+def strips(m):
+    """Park furniture on the grass strips between pens and the loop path."""
+    for row, (left_pen, right_pen) in ((10, ("Ice", "Water")), (20, ("Savanna", "Jungle")),
+                                       (27, ("Forest", "Prehistoric"))):
+        m.obj(f"plaque_{left_pen}", 6, row, "Buildings")
+        m.obj(f"plaque_{right_pen}", 29, row, "Buildings")
+        if row != 20:  # the forest oaks overhang the row-20 strip on the left
+            m.zoo_lamp(3, row)
+            m.obj("bin", 5, row, "Buildings")
+            m.obj("planter_red", 10, row, "Buildings")
+        m.zoo_lamp(12, row)
+        m.zoo_lamp(25, row)
+        m.obj("planter_yellow", 27, row, "Buildings")
+        m.obj("bin_recycle", 32, row, "Buildings")
+        m.zoo_lamp(34, row)
+
+
+def lawns(m):
+    # top lawns: carts, shade trees, benches facing the path, a signpost
+    m.obj("snack_cart", 16, 2, ["Front", "Buildings"])
+    m.obj("icecream_cart", 20, 2, ["Front", "Buildings"])
+    m.oak(14, 8, OAK_A, in_pen=False)
+    m.oak(23, 8, OAK_B, in_pen=False)
+    m.zoo_lamp(17, 7)
+    m.zoo_lamp(20, 7)
+    m.obj("bench", 13, 10, "Buildings")
+    m.obj("bench", 23, 10, "Buildings")
+    m.obj("bin", 16, 10, "Buildings")
+    m.obj("bin_recycle", 21, 10, "Buildings")
+    m.obj("sign_Ice_Water", 17, 9, ["Front", "Buildings"])
+    m.obj("balloons", 16, 5, ["Front", "Buildings"])
+    m.obj("planter_pink", 24, 9, "Buildings")
+    m.obj("planter_pink", 13, 9, "Buildings")
+    m.obj("planter_blue", 13, 2, "Buildings")
+    m.obj("planter_blue", 24, 2, "Buildings")
+
+    # middle columns beside the plaza
+    m.obj("planter_pink", 13, 12, "Buildings")
+    m.obj("planter_pink", 24, 12, "Buildings")
+    m.obj("bin", 24, 16, "Buildings")
+    m.zoo_lamp(24, 20)
+    m.obj("sign_Savanna_Jungle", 13, 18, ["Front", "Buildings"])
+
+    # bottom lawns: entrance arch, trees, benches, ice cream
+    m.obj("arch", 17, 25, ["AlwaysFront", "AlwaysFront", "Buildings"])
+    m.oak(14, 26, OAK_B, in_pen=False)
+    m.oak(23, 26, OAK_A, in_pen=False)
+    m.obj("sign_Forest_Prehistoric", 17, 22, ["Front", "Buildings"])
+    m.obj("icecream_cart", 20, 22, ["Front", "Buildings"])
+    m.obj("balloons", 21, 25, ["Front", "Buildings"])
+    m.zoo_lamp(16, 25)
+    m.obj("bench", 15, 27, "Buildings")
+    m.obj("bench", 21, 27, "Buildings")
+    m.obj("planter_yellow", 13, 27, "Buildings")
+    m.obj("planter_yellow", 24, 27, "Buildings")
+
+
+def plaza(m):
+    # booth / board / studio: bottom rows on Buildings carry the Action tiles
+    m.obj("booth", 16, 11, ["Front", "Front", "Front", "Buildings"])
+    m.obj("board", 19, 11, ["Front", "Front", "Front", "Buildings"])
+    m.obj("speaker", 17, 15, ["Front", "Buildings"])
+    m.obj("studio", 18, 15, ["Front", "Buildings"])
+    m.obj("mic", 20, 15, ["Front", "Buildings"])
+    m.obj("fountain", 18, 18, "Buildings")
+    m.obj("bench", 15, 19, "Buildings")
+    m.obj("bench", 21, 19, "Buildings")
+    for x, y, kind in ((15, 14, "planter_yellow"), (22, 14, "planter_yellow"),
+                       (15, 17, "planter_red"), (22, 17, "planter_red")):
+        m.obj(kind, x, y, "Buildings")
+    m.obj("bin", 14, 19, "Buildings")
+    m.obj("bin_recycle", 23, 19, "Buildings")
+    m.town_lamp(15, 12)
+    m.town_lamp(22, 12)
+
+
+def action_tiles(zs):
+    """Every counter tile of a prop triggers its action; the C#-documented tiles are among them."""
+    acts = {}
+    for name, action in (("booth", "StardewZoo_TicketBooth"), ("board", "StardewZoo_ReviewBoard"),
+                         ("studio", "StardewZoo_RecordingStudio")):
+        for tid in zs.objects[name][-1]:
+            if tid is not None:
+                acts[tid] = action
+    return acts
+
+
+def build(zs):
     rng = random.Random(1234)
-    terrain = build_terrain()
+    blender = TerrainBlender(zs)
+    zs.vanilla_anims.update({("outdoors", t): WATER_FRAMES[i:] + WATER_FRAMES[:i]
+                             for i, t in enumerate(WATER_FRAMES)})
 
-    def put(layer, x, y, sheet, local, overwrite=True):
-        if 0 <= x < MAP_W and 0 <= y < MAP_H:
-            if overwrite or layer[y][x] == 0:
-                layer[y][x] = sheet.gid(local)
+    cells = build_cells()
+    V = build_vertices(cells)
+    paint_pens(V)
 
-    # --- Back: autotiled terrain ---
+    m = ZooMap(zs)
+    m.corners = [[(V[y][x], V[y][x + 1], V[y + 1][x], V[y + 1][x + 1]) for x in range(MAP_W)] for y in range(MAP_H)]
     for y in range(MAP_H):
         for x in range(MAP_W):
-            c = terrain[y][x]
-            if c == "w":
-                put(back, x, y, out, rng.choice(WATER_DECOR) if rng.random() < 0.2 else WATER)
-            elif c == "c":
-                put(back, x, y, town, rng.choice(COBBLE))
-            elif c in "ni":
-                key = corner_mask(terrain, x, y, lambda v: v == "i", "all")
-                table = ICE_ON_SNOW.get(key) if key != "...." else SNOW_FILL
-                put(back, x, y, win, rng.choice(table))
-            else:
-                key = corner_mask(terrain, x, y, lambda v: v in "dwc", "any")
-                if key != "....":
-                    put(back, x, y, out, rng.choice(DIRT_ON_GRASS[key]))
-                    continue
-                key = corner_mask(terrain, x, y, lambda v: v == "k", "all")
-                if key != "....":
-                    put(back, x, y, out, rng.choice(DARK_ON_GRASS[key]))
-                else:
-                    put(back, x, y, out, rng.choice(GRASS_FILL))
+            m.put("Back", x, y, blender.tile(m.corners[y][x], rng))
 
-    # --- pen fences: closed Town-style picket rectangles with a braced gate ---
-    plaques = {
-        "Ice": T_PLAQUE_ICE, "Water": T_PLAQUE_WATER, "Savanna": T_PLAQUE_SAVANNA,
-        "Jungle": T_PLAQUE_JUNGLE, "Forest": T_PLAQUE_FOREST, "Prehistoric": T_PLAQUE_DINO,
-    }
-    for name, rect in HABITATS.items():
-        fx, fy, fw, fh = fence_rect(rect)
-        left, right, top, bottom = fx, fx + fw - 1, fy, fy + fh - 1
-        gate = rect[0] + rect[2] // 2
-
-        def piece(x, y, p):
-            put(buildings, x, y, town, p[0])
-            if p[1] is not None:
-                put(front, x, y - 1, town, p[1])
-
-        for x in range(left, right + 1):
-            if x == left:
-                piece(x, top, FENCE_TL)
-                piece(x, bottom, FENCE_BL)
-            elif x == right:
-                piece(x, top, FENCE_TR)
-                piece(x, bottom, FENCE_BR)
-            else:
-                piece(x, top, FENCE_TOP)
-                piece(x, bottom, FENCE_GATE_L if x == gate else FENCE_GATE_R if x == gate + 1 else FENCE_BOTTOM)
-        for y in range(top + 1, bottom):
-            upper = y == bottom - 1
-            piece(left, y, FENCE_BL_UPPER if upper else FENCE_L)
-            piece(right, y, FENCE_BR_UPPER if upper else FENCE_R)
-        put(always, rect[0] + rect[2] // 2, top - 1, zoo, plaques[name])
-
-    # --- map border: bushes, open south door ---
     for x in range(MAP_W):
         for y in range(MAP_H):
             if (x in (0, MAP_W - 1) or y in (0, MAP_H - 1)) and not (y == MAP_H - 1 and x in (18, 19)):
-                put(buildings, x, y, out, BORDER_BUSH)
+                m.put("Buildings", x, y, O(BORDER_BUSH))
+    fences(m)
+    plaza(m)
+    pens(m, rng)
+    strips(m)
+    lawns(m)
 
-    # --- props ---
-    def tree(base_x, base_y, oak, solid=True):
-        rows, trunk, root = oak[:4], oak[4], oak[5]
-        for i, row in enumerate(rows):
-            layer = always if i < 3 else front
-            for dx, tid in enumerate(row):
-                put(layer, base_x - 1 + dx, base_y - 5 + i, out, tid, overwrite=False)
-        put(buildings if solid else front, base_x, base_y - 1, out, trunk)
-        put(buildings if solid else front, base_x, base_y, out, root)
-
-    def lamp(x, y):
-        put(buildings, x, y, town, LAMP_BASE)
-        put(front, x, y - 1, town, LAMP_POST)
-        put(front, x, y - 2, town, LAMP_MID)
-        put(front, x, y - 3, town, LAMP_HEAD)
-
-    def flower_bed(x, y):
-        for dx in range(3):
-            put(back, x + dx, y, out, FLOWERS[dx % 2])
-
-    # shade trees and flower beds in the open lawns beside the central aisle
-    tree(14, 9, OAK_A)
-    tree(23, 9, OAK_B)
-    tree(14, 26, OAK_B)
-    tree(23, 26, OAK_A)
-    flower_bed(14, 3)
-    flower_bed(21, 3)
-
-    px, py, pw, ph = PLAZA
-    lamps = [(px - 1, py - 1), (px + pw, py - 1), (13, 20), (24, 20), (16, 27), (21, 27)]
-    for x, y in lamps:
-        lamp(x, y)
-
-    # flowers on lawn edges (Back, walkable)
-    for x, y in ((13, 4), (16, 7), (21, 7), (24, 4), (13, 13), (24, 14), (13, 23), (24, 24), (16, 24), (21, 23)):
-        if terrain[y][x] == "g":
-            put(back, x, y, out, rng.choice(FLOWERS))
-
-    # pen props stay off Buildings so animals can be placed on any pen tile
-    wx, wy, ww, wh = HABITATS["Water"]
-    for dx, dy in ((3, 3), (5, 4)):
-        put(front, wx + dx, wy + dy, out, LILY_PAD)
-    put(front, wx + 4, wy + 2, out, LILY_FLOWER)
-    put(back, wx + 6, wy + 2, out, WATER_ROCK)
-
-    sx, sy, sw, sh = HABITATS["Savanna"]
-    tree(sx + 7, sy + 4, OAK_B, solid=False)
-    for dx, dy in ((0, 5), (8, 5), (2, 0)):
-        put(front, sx + dx, sy + dy, isl, FERNS[0])
-
-    jx, jy, jw, jh = HABITATS["Jungle"]
-    for bx in (jx + 1, jx + 7):
-        canopy, mid, trunk, base = PALM
-        for dx in range(3):
-            put(always, bx - 1 + dx, jy - 1, isl, canopy[dx], overwrite=False)
-            put(front, bx - 1 + dx, jy, isl, mid[dx])
-        put(front, bx, jy + 1, isl, trunk)
-        put(front, bx, jy + 2, isl, base)
-    for i, (dx, dy) in enumerate(((4, 1), (3, 4), (6, 5), (0, 5), (8, 4))):
-        put(front, jx + dx, jy + dy, isl, (FERNS + JUNGLE_LEAVES)[i % 4])
-
-    fx_, fy_, fw_, fh_ = HABITATS["Forest"]
-    tree(fx_ + 1, fy_ + 2, OAK_A, solid=False)
-    tree(fx_ + 7, fy_ + 2, OAK_B, solid=False)
-    put(front, fx_ + 4, fy_ + 2, isl, FERNS[1])
-
-    hx, hy, hw, hh = HABITATS["Prehistoric"]
-    for dx, dy in ((8, 0), (0, 2), (5, 0)):
-        put(front, hx + dx, hy + dy, isl, FERNS[dx % 2])
-
-    # --- plaza props: booth, board, studio (tiles/actions fixed for the C# side) ---
-    put(front, 16, 13, zoo, T_BOOTH_AWN_L)
-    put(front, 17, 13, zoo, T_BOOTH_AWN_M)
-    put(front, 18, 13, zoo, T_BOOTH_AWN_R)
-    put(buildings, 16, 14, zoo, T_BOOTH_CTR_L)
-    put(buildings, 17, 14, zoo, T_BOOTH_CTR_M)
-    put(buildings, 18, 14, zoo, T_BOOTH_CTR_R)
-    put(front, 19, 13, zoo, T_BOARD_TOP_L)
-    put(front, 20, 13, zoo, T_BOARD_TOP_R)
-    put(buildings, 19, 14, zoo, T_BOARD_BOT_L)
-    put(buildings, 20, 14, zoo, T_BOARD_BOT_R)
-    put(front, 18, 15, zoo, T_STUDIO_TOP_L)
-    put(front, 19, 15, zoo, T_STUDIO_TOP_R)
-    put(buildings, 18, 16, zoo, T_STUDIO_BOT_L)
-    put(buildings, 19, 16, zoo, T_STUDIO_BOT_R)
-
-    # ZOO banner over the entrance
-    put(always, 18, 27, zoo, T_ZOO_BANNER)
-    put(always, 19, 27, zoo, T_ZOO_BANNER)
-
-    # the feed hopper (IndoorItem) needs a clear tile
-    buildings[HAY[1]][HAY[0]] = 0
-    return (back, buildings, front, always), lamps
+    m.cells["Buildings"][HAY[1]][HAY[0]] = []
+    return m
 
 
-def csv(layer):
+def csv(grid):
     lines = []
-    for y, row in enumerate(layer):
+    for y, row in enumerate(grid):
         line = ",".join(str(v) for v in row)
-        if y != len(layer) - 1:
+        if y != len(grid) - 1:
             line += ","
         lines.append(line)
     return "\n" + "\n".join(lines) + "\n"
 
 
-def animation_xml(frames_by_tile):
+def animation_xml(anims):
     chunks = []
-    for tid, (frames, duration) in frames_by_tile.items():
-        body = "\n".join(f'        <frame tileid="{f}" duration="{duration}" />' for f in frames)
+    for tid, (frames, ms) in sorted(anims.items()):
+        body = "\n".join(f'        <frame tileid="{f}" duration="{ms}" />' for f in frames)
         chunks.append(f'    <tile id="{tid}">\n      <animation>\n{body}\n      </animation>\n    </tile>')
-    return "\n".join(chunks)
+    return chunks
 
 
-def outdoor_animations():
-    anims = {}
-    for i, tid in enumerate(WATER_FRAMES):
-        anims[tid] = (WATER_FRAMES[i:] + WATER_FRAMES[:i], 600)
-    anims[LILY_PAD] = (LILY_PAD_FRAMES, 500)
-    anims[LILY_FLOWER] = (LILY_FLOWER_FRAMES, 450)
-    return anims
+def write_tmx(zs, m, resolved):
+    sheets = list(VANILLA_SHEETS)
+    zsheet = zs.save(ZOO_PNG)
+    zoo = Sheet("zoo_tiles", "zoo_tiles", zsheet.width, zsheet.height, zsheet.width // 16)
+    sheets.append(zoo)
+    gid = 1
+    for s in sheets:
+        s.firstgid = gid
+        gid += s.tilecount
+    by_name = {s.name: s for s in sheets}
+    by_name["zoo"] = zoo
 
+    layers = {}
+    for layer, grid in resolved.items():
+        layers[layer] = [[0 if c is None else by_name[c[0]].firstgid + c[1] for c in row] for row in grid]
 
-def write_tmx(sheets, layers, lamps):
-    back, buildings, front, always = layers
-    warp = " ".join(f"{x} {y} Farm 0 0" for x, y in WARP_TILES)
-    action_xml = []
-    for tid, action in ACTION_TILES.items():
-        action_xml.append(
+    outdoor_anims = {t: (WATER_FRAMES[i:] + WATER_FRAMES[:i], 600) for i, t in enumerate(WATER_FRAMES)}
+    acts = action_tiles(zs)
+    zoo_tiles_xml = animation_xml(zs.anims)
+    for tid, action in sorted(acts.items()):
+        zoo_tiles_xml.append(
             f'    <tile id="{tid}">\n      <properties>\n'
             f'        <property name="Action" type="string" value="{action}" />\n'
-            f"      </properties>\n    </tile>"
-        )
+            f"      </properties>\n    </tile>")
 
     tileset_xml = []
-    for s in sheets.values():
+    for s in sheets:
         extra = ""
         if s.name == "outdoors":
-            extra = "\n" + animation_xml(outdoor_animations())
+            extra = "\n" + "\n".join(animation_xml(outdoor_anims))
         if s.name == "zoo_tiles":
-            extra = "\n" + "\n".join(action_xml)
+            extra = "\n" + "\n".join(zoo_tiles_xml)
         tileset_xml.append(
             f'  <tileset firstgid="{s.firstgid}" name="{s.name}" tilewidth="16" tileheight="16" '
             f'tilecount="{s.tilecount}" columns="{s.columns}">\n'
             f'    <image source="{s.source}" width="{s.width}" height="{s.height}" />{extra}\n'
-            f"  </tileset>"
-        )
+            f"  </tileset>")
 
-    lights = " ".join(f"{x} {y - 3} 4" for x, y in lamps) + " 18 28 4"
+    warp = " ".join(f"{x} {y} Farm 0 0" for x, y in WARP_TILES)
+    lights = " ".join(f"{x} {y} 4" for x, y in m.lamps) + " 18 28 4"
     produce = " ".join(str(v) for v in PRODUCE_AREA)
+
+    perch_objs = []
+    oid = 4
+    kinds = {"Jungle": ["palm"] * 3, "Forest": ["oak", "oak", "snag"]}
+    for pen, spots in ZOO_PERCHES.items():
+        for (x, y), kind in zip(spots, kinds[pen]):
+            perch_objs.append(
+                f'    <object id="{oid}" name="TileData" x="{x * 16}" y="{y * 16}" width="16" height="16">\n'
+                f'      <properties>\n'
+                f'        <property name="ZooPerch" type="string" value="{PERCH_HEIGHT[kind]}" />\n'
+                f'      </properties>\n    </object>')
+            oid += 1
+
+    def layer_xml(i, name):
+        return (f'  <layer id="{i}" name="{name}" width="{MAP_W}" height="{MAP_H}">\n'
+                f'    <data encoding="csv">{csv(layers[name])}</data>\n  </layer>')
+
+    nl = "\n"
     xml = f"""<?xml version="1.0"?>
-<map version="1.4" tiledversion="1.4.2" orientation="orthogonal" renderorder="right-down" compressionlevel="0" width="{MAP_W}" height="{MAP_H}" tilewidth="16" tileheight="16" infinite="0" nextlayerid="10" nextobjectid="8">
+<map version="1.4" tiledversion="1.4.2" orientation="orthogonal" renderorder="right-down" compressionlevel="0" width="{MAP_W}" height="{MAP_H}" tilewidth="16" tileheight="16" infinite="0" nextlayerid="10" nextobjectid="{oid}">
   <properties>
     <property name="AmbientLight" type="string" value="255 255 255" />
     <property name="Light" type="string" value="{lights}" />
     <property name="ProduceArea" type="string" value="{produce}" />
     <property name="Warp" type="string" value="{warp}" />
   </properties>
-{chr(10).join(tileset_xml)}
-  <layer id="1" name="Back" width="{MAP_W}" height="{MAP_H}">
-    <data encoding="csv">{csv(back)}</data>
-  </layer>
-  <layer id="2" name="Buildings" width="{MAP_W}" height="{MAP_H}">
-    <data encoding="csv">{csv(buildings)}</data>
-  </layer>
-  <layer id="3" name="Front" width="{MAP_W}" height="{MAP_H}">
-    <data encoding="csv">{csv(front)}</data>
-  </layer>
-  <layer id="4" name="AlwaysFront" width="{MAP_W}" height="{MAP_H}">
-    <data encoding="csv">{csv(always)}</data>
-  </layer>
+{nl.join(tileset_xml)}
+{nl.join(layer_xml(i + 1, n) for i, n in enumerate(LAYERS))}
   <objectgroup id="5" name="Buildings" visible="false">
     <object id="1" name="TileData" x="{BOOTH[0] * 16}" y="{BOOTH[1] * 16}" width="16" height="16">
       <properties>
@@ -477,25 +569,26 @@ def write_tmx(sheets, layers, lamps):
       </properties>
     </object>
   </objectgroup>
+  <objectgroup id="6" name="Back" visible="false">
+{nl.join(perch_objs)}
+  </objectgroup>
 </map>
 """
     path = ASSETS / "StardewZoo.tmx"
     path.write_text(xml)
-    return path
+    return path, zsheet
 
 
 def main():
-    import draw_tiles
-    draw_tiles.main()
-    ASSETS.mkdir(parents=True, exist_ok=True)
-    sheets = build_sheets()
-    layers, lamps = build_layers(sheets)
-    path = write_tmx(sheets, layers, lamps)
+    zs = ZooSheet()
+    build_objects(zs)
+    m = build(zs)
+    resolved = m.resolve()
+    path, zsheet = write_tmx(zs, m, resolved)
+    save_preview(zs)
     from render_map import render_tmx
-    preview_dir = Path(__file__).resolve().parent / "previews"
-    render_tmx(path, Path("/tmp/zoo_art") / "interior_v2.png", scale=2)
-    render_tmx(path, preview_dir / "zoo_map.png", scale=2)
-    print(f"Wrote map {MAP_W}x{MAP_H} to {path}")
+    render_tmx(path, Path(__file__).resolve().parent / "previews" / "zoo_map.png", scale=2)
+    print(f"Wrote map {MAP_W}x{MAP_H} to {path}; zoo_tiles {zsheet.size} ({len(zs.images)} tiles)")
 
 
 if __name__ == "__main__":
