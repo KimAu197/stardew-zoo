@@ -8,6 +8,16 @@
       "FromFile": "assets/{{TargetWithoutPath}}.png"
     },
     {
+      "LogName": "Zoo snowy roofs",
+      "Action": "EditImage",
+      "Target": "Mods/StardewZoo/Zoo, Mods/StardewZoo/BigZoo, Mods/StardewZoo/DeluxeZoo",
+      "FromFile": "assets/{{TargetWithoutPath}}_winter.png",
+      "PatchMode": "Replace",
+      "When": {
+        "Season": "winter"
+      }
+    },
+    {
       "LogName": "Zoo tilesheet",
       "Action": "Load",
       "Target": "Maps/zoo_tiles",
