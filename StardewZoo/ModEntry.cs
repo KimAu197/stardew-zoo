@@ -52,6 +52,8 @@ internal sealed class ModEntry : Mod
     {
         this.save = this.Helper.Data.ReadSaveData<ZooSaveData>(ZooSaveData.Key) ?? new ZooSaveData();
         HabitatKeeper.ReloadInteriors(msg => this.Monitor.Log(msg, LogLevel.Info));
+        if (Context.IsMainPlayer)
+            HabitatKeeper.ClearStaleFeeders(msg => this.Monitor.Log(msg, LogLevel.Info));
         this.recording.Initialize(this.save);
         HabitatKeeper.SnapAll(Random.Shared);
         HabitatKeeper.FeedAll();

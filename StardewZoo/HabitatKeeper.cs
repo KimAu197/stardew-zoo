@@ -7,6 +7,9 @@ namespace StardewZoo;
 /// <summary>Keeps zoo animals inside their biome pens and fed.</summary>
 internal static class HabitatKeeper
 {
+    private const string HayId = "(O)178";
+    private const string FeedHopperId = "(BC)99";
+
     public static void SnapAll(Random rng)
     {
         ForEachZooAnimal((house, animal) => Snap(house, animal, rng, force: true));
@@ -55,6 +58,55 @@ internal static class HabitatKeeper
             indoors.loadMap(ZooIds.IndoorMapAsset, true);
             indoors.updateWarps();
             log($"Reloaded zoo interior onto {ZooIds.IndoorMapAsset} (was '{previous}').");
+            return true;
+        });
+    }
+
+    /// <summary>
+    /// Zoos built while the interior was the vanilla barn keep that map's feed hopper and trough hay after the map swap;
+    /// they now sit on the park (over the ice pavilion). Move the hopper to the zoo's own hopper tile and return the
+    /// stray hay to the silos. The zoo map has no troughs, so hay off a trough can never be eaten.
+    /// </summary>
+    public static void ClearStaleFeeders(Action<string> log)
+    {
+        Utility.ForEachBuilding(building =>
+        {
+            if (!ZooIds.IsZoo(building.buildingType.Value) || building.GetIndoors() is not AnimalHouse house)
+                return true;
+
+            Vector2? hopperTile = null;
+            foreach (var item in building.GetData()?.IndoorItems ?? new())
+            {
+                if (ItemRegistry.QualifyItemId(item.ItemId) == FeedHopperId)
+                    hopperTile = Utility.PointToVector2(item.Tile);
+            }
+
+            int hay = 0;
+            foreach (Vector2 tile in house.objects.Keys.ToList())
+            {
+                StardewValley.Object obj = house.objects[tile];
+                if (obj.QualifiedItemId == HayId && house.doesTileHaveProperty((int)tile.X, (int)tile.Y, "Trough", "Back") == null)
+                {
+                    hay += obj.Stack;
+                    house.objects.Remove(tile);
+                }
+                else if (obj.QualifiedItemId == FeedHopperId && tile != hopperTile)
+                {
+                    house.objects.Remove(tile);
+                    if (hopperTile is Vector2 target && !house.objects.ContainsKey(target))
+                    {
+                        obj.TileLocation = target;
+                        house.objects.Add(target, obj);
+                    }
+                    log($"Moved zoo feed hopper off ({tile.X}, {tile.Y}).");
+                }
+            }
+
+            if (hay > 0)
+            {
+                int left = GameLocation.StoreHayInAnySilo(hay, house.GetRootLocation());
+                log($"Returned {hay - left} stray hay from a zoo to the silos{(left > 0 ? $" ({left} discarded, silos full)" : "")}.");
+            }
             return true;
         });
     }

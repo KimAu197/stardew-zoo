@@ -7,6 +7,7 @@ from PIL import Image
 
 from animal_sizes import CLIMBERS, FLIERS, SWIMMERS, frame
 from draw_furniture import content_changes as furniture_changes
+from zoo_layout import HAY
 
 ROOT = Path(__file__).resolve().parent.parent
 ASSETS = ROOT / "[CP] Stardew Zoo" / "assets"
@@ -153,7 +154,7 @@ def building(tier):
         "ValidOccupantTypes": ["StardewZoo.Zoo"],
         "AllowAnimalPregnancy": False,
         "IndoorItems": [
-            {"Id": "Default_FeedHopper", "ItemId": "(BC)99", "Tile": {"X": 21, "Y": 17}, "Indestructible": True, "ClearTile": True}
+            {"Id": "Default_FeedHopper", "ItemId": "(BC)99", "Tile": {"X": HAY[0], "Y": HAY[1]}, "Indestructible": True, "ClearTile": True}
         ],
     }
     if name != "Zoo":
