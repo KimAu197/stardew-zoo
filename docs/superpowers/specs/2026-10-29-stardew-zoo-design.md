@@ -68,8 +68,9 @@ every animal can be fed on days it stays inside.
   (size, doors, draw layers, interior item moves) mirror the matching vanilla
   barn tier exactly.
 - `ValidOccupantTypes` contains only `StardewZoo.Zoo`, so only zoo animals live there.
-- Build costs (gold + materials) are set to mirror the barn progression scaled
-  up (Zoo ≈ 10,000g, Big Zoo ≈ 20,000g, Deluxe Zoo ≈ 35,000g plus wood/stone).
+- Build costs: Zoo 5,000g + 200 wood + 100 stone; Big Zoo 10,000g + 250 wood
+  + 125 stone; Deluxe Zoo 17,500g + 325 wood + 175 stone.
+- Construction and upgrades finish instantly (`BuildDays` = 0).
 - Capacity is the building's `MaxOccupants`; the income multiplier lives in the
   C# config keyed by building ID (data files have no field for it).
 

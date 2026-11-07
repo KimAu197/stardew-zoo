@@ -21,11 +21,11 @@
           "Size": { "X": 7, "Y": 4 },
           "SourceRect": { "X": 0, "Y": 0, "Width": 112, "Height": 112 },
           "Builder": "Robin",
-          "BuildDays": 3,
-          "BuildCost": 10000,
+          "BuildDays": 0,
+          "BuildCost": 5000,
           "BuildMaterials": [
-            { "ItemId": "(O)388", "Amount": 400 },
-            { "ItemId": "(O)390", "Amount": 200 }
+            { "ItemId": "(O)388", "Amount": 200 },
+            { "ItemId": "(O)390", "Amount": 100 }
           ],
           "HumanDoor": { "X": 1, "Y": 3 },
           "AnimalDoor": { "X": 3, "Y": 3, "Width": 2, "Height": 1 },
@@ -58,11 +58,11 @@
           "Size": { "X": 7, "Y": 4 },
           "SourceRect": { "X": 0, "Y": 0, "Width": 112, "Height": 112 },
           "Builder": "Robin",
-          "BuildDays": 2,
-          "BuildCost": 20000,
+          "BuildDays": 0,
+          "BuildCost": 10000,
           "BuildMaterials": [
-            { "ItemId": "(O)388", "Amount": 500 },
-            { "ItemId": "(O)390", "Amount": 250 }
+            { "ItemId": "(O)388", "Amount": 250 },
+            { "ItemId": "(O)390", "Amount": 125 }
           ],
           "BuildingToUpgrade": "StardewZoo.Zoo",
           "HumanDoor": { "X": 1, "Y": 3 },
@@ -102,11 +102,11 @@
           "Size": { "X": 7, "Y": 4 },
           "SourceRect": { "X": 0, "Y": 0, "Width": 112, "Height": 112 },
           "Builder": "Robin",
-          "BuildDays": 2,
-          "BuildCost": 35000,
+          "BuildDays": 0,
+          "BuildCost": 17500,
           "BuildMaterials": [
-            { "ItemId": "(O)388", "Amount": 650 },
-            { "ItemId": "(O)390", "Amount": 350 }
+            { "ItemId": "(O)388", "Amount": 325 },
+            { "ItemId": "(O)390", "Amount": 175 }
           ],
           "BuildingToUpgrade": "StardewZoo.BigZoo",
           "HumanDoor": { "X": 1, "Y": 3 },
