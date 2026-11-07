@@ -12,9 +12,16 @@ internal static class HabitatKeeper
         ForEachZooAnimal((house, animal) => Snap(house, animal, rng, force: true));
     }
 
-    public static void SnapEscaped(Random rng)
+    /// <summary>Move animals that left their pen, or stand in water their species can't enter, back onto pen ground.</summary>
+    /// <param name="rng">Picks the new tile.</param>
+    /// <param name="busy">Animals whose position <see cref="AnimalMovement"/> is driving (e.g. flying over a pool) are left alone.</param>
+    public static void SnapEscaped(Random rng, Func<FarmAnimal, bool> busy)
     {
-        ForEachZooAnimal((house, animal) => Snap(house, animal, rng, force: false));
+        ForEachZooAnimal((house, animal) =>
+        {
+            if (!busy(animal))
+                Snap(house, animal, rng, force: false);
+        });
     }
 
     public static void FeedAll()
@@ -60,10 +67,10 @@ internal static class HabitatKeeper
 
         int tileX = animal.TilePoint.X;
         int tileY = animal.TilePoint.Y;
-        if (!force && habitat.Contains(tileX, tileY))
+        if (!force && habitat.Contains(tileX, tileY) && WaterGuard.IsOnAllowedGround(house, animal))
             return;
 
-        (int x, int y) = habitat.RandomTile(rng);
+        (int x, int y) = ZooWater.RandomStandableTile(habitat, WaterGuard.AccessFor(animal), WaterGuard.KindsFor(house), rng);
         animal.controller = null;
         SetGroundCenter(animal, x * Game1.tileSize + Game1.tileSize / 2, y * Game1.tileSize + Game1.tileSize / 2);
         animal.noWarpTimer = 3000;

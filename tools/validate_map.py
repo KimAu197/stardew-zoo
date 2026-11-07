@@ -12,15 +12,25 @@ from collections import deque
 from pathlib import Path
 
 from vanilla import MAPS
-from zoo_layout import (BOARD, BOOTH, CS_PATH, ENTRANCE, FACADES, HABITATS, OPEN_PENS, OUTDOOR, PAVILIONS, PRODUCE_AREA,
-                        REGIONS, STUDIO, VISITOR_ROUTE, WARP_TILES, ZOO_PERCHES, barrier, csharp, facade_door,
-                        inner_loop, inside_arrival, inside_door, outside_arrival, region_of)
+from zoo_layout import (BOARD, BOOTH, CS_PATH, ENTRANCE, FACADES, HABITATS, LOOP_PATHS, OPEN_PENS, OUTDOOR, PATHS,
+                        PAVILIONS, PRODUCE_AREA, REGIONS, STUDIO, VISITOR_ROUTE, WARP_TILES, ZOO_PERCHES, barrier, csharp,
+                        facade_door, inner_loop, inside_arrival, inside_door, outside_arrival, region_of)
 
 ROOT = Path(__file__).resolve().parent.parent
 MOD = ROOT / "[CP] Stardew Zoo"
 TMX = MOD / "assets" / "StardewZoo.tmx"
-MOVEMENT_CS = ROOT / "StardewZoo" / "AnimalMovement.cs"
 GID_MASK = 0x1FFFFFFF
+
+# Path tiles deliberately covered by props (all on the plaza square and the centre avenue through it).
+PATH_PROPS = {
+    (15, 12), (22, 12),                                  # plaza street lamps
+    (15, 14), (22, 14), (15, 17), (22, 17),              # plaza planters
+    (16, 14), (17, 14), (18, 14), (19, 14), (20, 14), (21, 14),  # ticket booth + review board counters
+    (17, 16), (18, 16), (19, 16), (20, 16),              # speaker, recording studio, mic
+    (18, 18), (19, 18), (18, 19), (19, 19),              # fountain
+    (15, 19), (16, 19), (21, 19), (22, 19),              # plaza benches
+    (14, 19), (23, 19),                                  # plaza bins
+}
 TOUCH_ACTION = "StardewZoo_Pavilion"
 
 failures = []
@@ -217,17 +227,62 @@ def main():
     check(not problems and pos == ENTRANCE,
           f"visitor route: {len(VISITOR_ROUTE)} steps, each walk reachable in its region, ends at entrance (problems {problems[:3]})")
 
-    # --- swimming water + perches ---
-    water_ids = set(int(n) for n in re.findall(r"\d+", re.search(r"WaterTileIndexes = new\(\) \{([^}]*)\}", MOVEMENT_CS.read_text()).group(1)))
-    outdoors = first_gid["outdoors"]
-    for name in ("Ice", "Water"):
-        n = sum(1 for (x, y) in rect_tiles(HABITATS[name]) if (back[y][x] & GID_MASK) - outdoors in water_ids)
-        check(n >= 8, f"pen {name}: {n} swimmable water tiles recognised by AnimalMovement.WaterTileIndexes")
+    # --- path width: every park path tile and pavilion inner-lane tile is walkable, bar deliberate props ---
+    path_tiles = set().union(*(rect_tiles(p) for p in PATHS))
+    blocked = sorted(t for t in path_tiles if not walkable(*t) and t not in PATH_PROPS)
+    check(not blocked, f"park paths: all {len(path_tiles)} path tiles walkable except {len(PATH_PROPS)} allowlisted plaza props (blocked {blocked[:6]})")
+    stale = sorted(t for t in PATH_PROPS if walkable(*t))
+    check(not stale, f"path prop allowlist only lists blocked tiles (now walkable {stale[:6]})")
+    loop = flood(ENTRANCE, blocked=frozenset(t for t in rect_tiles(OUTDOOR) if t not in path_tiles))
+    for r in LOOP_PATHS:
+        missing = sorted(rect_tiles(r) - loop)
+        check(not missing, f"loop path {r} connected to the entrance along path tiles (cut off {missing[:4]})")
+    for name in PAVILIONS:
+        bx, by, bw, bh = barrier(name)
+        lane = {(x, y) for x in range(bx - 1, bx + bw + 1) for y in (by - 1, by + bh)}
+        lane |= {(x, y) for y in range(by - 1, by + bh + 1) for x in (bx - 1, bx + bw)}
+        lane -= {inside_door(name)}
+        bad = sorted(t for t in lane if not walkable(*t))
+        check(not bad, f"pavilion {name}: inner walkway lane around the railing is clear ({len(lane)} tiles, blocked {bad[:4]})")
+
+    # --- entrance: vanilla drops the player one tile above warps[0]; it must land on the loop with room both ways ---
+    warp = props.get("Warp", "").split()
+    first_warp = (int(warp[0]), int(warp[1])) if len(warp) >= 5 else (-1, -1)
+    landing = (first_warp[0], first_warp[1] - 1)
+    sides = [(landing[0] - 1, landing[1]), (landing[0] + 1, landing[1])]
+    check(landing == ENTRANCE and landing in path_tiles and walkable(*landing) and all(walkable(*s) and s in path_tiles for s in sides),
+          f"entrance landing {landing} (one above the first Warp) is ENTRANCE {ENTRANCE} on the loop path, left/right {sides} walkable")
+    check(first_warp == WARP_TILES[0] and all(walkable(*t) and region_of(*t) == "Outdoor" for t in WARP_TILES),
+          f"exit warps {WARP_TILES} sit on walkable gate tiles and match the Warp property ({props.get('Warp')})")
+
+    # --- water: ZooWater tags match the generator's terrain; enough of each kind; dry ground for everyone else ---
+    import make_map
+    cells = make_map.build_cells()
+    V = make_map.build_vertices(cells)
+    make_map.paint_pens(V)
+    corners = [[(V[y][x], V[y][x + 1], V[y + 1][x], V[y + 1][x + 1]) for x in range(W)] for y in range(H)]
+    expected = make_map.water_tiles(corners)
+    tagged = {pos: d[("Back", "ZooWater")] for pos, d in tile_props.items() if ("Back", "ZooWater") in d}
+    diff = sorted(set(expected.items()) ^ set(tagged.items()))
+    check(not diff, f"ZooWater tags match the generator's water terrain ({len(tagged)} tagged, mismatches {diff[:4]})")
+    pen_tiles = set().union(*(rect_tiles(r) for r in HABITATS.values()))
+    check(set(tagged) <= pen_tiles, "ZooWater tags only inside pens")
+    for name, rect in HABITATS.items():
+        tiles = rect_tiles(rect)
+        deep = sum(1 for t in tiles if tagged.get(t) == "Deep")
+        shallow = sum(1 for t in tiles if tagged.get(t) == "Shallow")
+        dry = len(tiles) - deep - shallow
+        need = {"Ice": (8, 0), "Water": (8, 8)}.get(name, (0, 0))
+        # the aquarium's residents all swim or wade; everyone else keeps to dry ground
+        ground = dry + shallow if name == "Water" else dry
+        check(deep >= need[0] and shallow >= need[1] and ground >= len(tiles) // 2,
+              f"pen {name}: {deep} deep, {shallow} shallow, {dry} dry tiles ({ground} standable for its least aquatic resident)")
     for pen, spots in ZOO_PERCHES.items():
-        tagged = [s for s in spots if ("Back", "ZooPerch") in tile_props.get(s, {})]
+        tagged_perch = [s for s in spots if ("Back", "ZooPerch") in tile_props.get(s, {})]
         inside = all(s in rect_tiles(HABITATS[pen]) for s in spots)
-        check(len(tagged) == len(spots) and inside and len(spots) >= 3,
-              f"pen {pen}: {len(tagged)}/{len(spots)} ZooPerch trees tagged inside the pen")
+        wet = [s for s in spots if s in tagged]
+        check(len(tagged_perch) == len(spots) and inside and len(spots) >= 3 and not wet,
+              f"pen {pen}: {len(tagged_perch)}/{len(spots)} ZooPerch trees tagged inside the pen, on dry ground (wet {wet})")
 
     # --- properties and generated C# ---
     produce = tuple(int(v) for v in (props.get("ProduceArea") or "0 0 0 0").split())

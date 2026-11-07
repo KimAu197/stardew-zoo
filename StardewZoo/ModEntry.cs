@@ -13,6 +13,7 @@ internal sealed class ModEntry : Mod
     private DailyIncome? lastPayout;
     private VisitorManager visitors = null!;
     private RecordingManager recording = null!;
+    private AnimalMovement movement = null!;
     private int tick;
 
     public override void Entry(IModHelper helper)
@@ -22,7 +23,8 @@ internal sealed class ModEntry : Mod
         this.visitors = new VisitorManager(helper, this.Monitor, () => this.config, () => this.save);
         this.recording = new RecordingManager(helper, this.Monitor);
         new AnimalCallHandler(helper, this.config);
-        new AnimalMovement(helper, this.config);
+        this.movement = new AnimalMovement(helper, this.config);
+        WaterGuard.Apply(this.Monitor);
         new ZooFurniture(helper, this.Monitor);
         new PavilionManager(helper, this.Monitor);
 
@@ -116,7 +118,7 @@ internal sealed class ModEntry : Mod
         if (this.tick % 60 == 0)
         {
             HabitatKeeper.FeedAll();
-            HabitatKeeper.SnapEscaped(Random.Shared);
+            HabitatKeeper.SnapEscaped(Random.Shared, this.movement.IsControlling);
         }
     }
 

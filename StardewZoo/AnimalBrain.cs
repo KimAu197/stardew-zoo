@@ -54,6 +54,7 @@ public sealed record MoveProfile(MoveStyle Style)
     public float LapSpeed { get; init; } = 270;
     public int GroundSpeed { get; init; } = 2;
     public float StepIntervalMs { get; init; } = 175;
+    public WaterAccess Water { get; init; }
 }
 
 public static class MoveProfiles
@@ -63,11 +64,11 @@ public static class MoveProfiles
     private static readonly IReadOnlyDictionary<string, MoveProfile> ByType = new Dictionary<string, MoveProfile>
     {
         [ZooIds.Owl] = new(MoveStyle.Flier) { FlightsPerMinute = 0.8, PerchesPerMinute = 1.2, PerchesAtNight = true, CruiseAltitude = 112, FlySpeed = 170 },
-        [ZooIds.NightHeron] = new(MoveStyle.Flier) { FlightsPerMinute = 1.2, PerchesPerMinute = 0.2, WaterTripsPerMinute = 0.8, CruiseAltitude = 160, FlySpeed = 200 },
-        [ZooIds.Flamingo] = new(MoveStyle.Flier) { FlightsPerMinute = 0.2, WaterTripsPerMinute = 2.5, CruiseAltitude = 150, FlySpeed = 170 },
+        [ZooIds.NightHeron] = new(MoveStyle.Flier) { FlightsPerMinute = 1.2, PerchesPerMinute = 0.2, WaterTripsPerMinute = 0.8, CruiseAltitude = 160, FlySpeed = 200, Water = WaterAccess.Shallow },
+        [ZooIds.Flamingo] = new(MoveStyle.Flier) { FlightsPerMinute = 0.2, WaterTripsPerMinute = 2.5, CruiseAltitude = 150, FlySpeed = 170, Water = WaterAccess.Shallow },
         [ZooIds.Monkey] = new(MoveStyle.Climber) { ClimbsPerMinute = 2.5 },
-        [ZooIds.SeaLion] = new(MoveStyle.Swimmer) { WaterTripsPerMinute = 3, SwimsLaps = true, LapSpeed = 280 },
-        [ZooIds.Capybara] = new(MoveStyle.Swimmer) { WaterTripsPerMinute = 1.5, SitsPerMinute = 0.5 },
+        [ZooIds.SeaLion] = new(MoveStyle.Swimmer) { WaterTripsPerMinute = 3, SwimsLaps = true, LapSpeed = 280, Water = WaterAccess.Any },
+        [ZooIds.Capybara] = new(MoveStyle.Swimmer) { WaterTripsPerMinute = 1.5, SitsPerMinute = 0.5, Water = WaterAccess.Any },
         [ZooIds.Elephant] = new(MoveStyle.BigWalker) { GroundSpeed = 1, StepIntervalMs = 300 },
         [ZooIds.Giraffe] = new(MoveStyle.BigWalker) { GroundSpeed = 1, StepIntervalMs = 260 },
         [ZooIds.Dinosaur] = new(MoveStyle.BigWalker) { GroundSpeed = 1, StepIntervalMs = 340 },
@@ -82,18 +83,35 @@ public static class MoveProfiles
 /// <summary>What the brain knows about the animal's pen.</summary>
 public sealed class BrainWorld
 {
-    public BrainWorld(HabitatRect pen, IReadOnlyList<PerchSpot> perches, IReadOnlyList<(int X, int Y)> waterTiles)
+    private readonly Dictionary<WaterAccess, IReadOnlyList<(int X, int Y)>> standable = new();
+
+    /// <param name="pen">The pen.</param>
+    /// <param name="perches">Trees to perch on or climb.</param>
+    /// <param name="waterTiles">Every water tile in the pen.</param>
+    /// <param name="waterAt">The water kind of a tile; defaults to shallow for <paramref name="waterTiles"/>.</param>
+    public BrainWorld(HabitatRect pen, IReadOnlyList<PerchSpot> perches, IReadOnlyList<(int X, int Y)> waterTiles, Func<int, int, WaterKind>? waterAt = null)
     {
         this.Pen = pen;
         this.Perches = perches;
         this.WaterTiles = waterTiles;
         this.LapPath = LapPlanner.Build(waterTiles);
+        var set = new HashSet<(int X, int Y)>(waterTiles);
+        this.WaterAt = waterAt ?? ((x, y) => set.Contains((x, y)) ? WaterKind.Shallow : WaterKind.None);
     }
 
     public HabitatRect Pen { get; }
     public IReadOnlyList<PerchSpot> Perches { get; }
     public IReadOnlyList<(int X, int Y)> WaterTiles { get; }
     public IReadOnlyList<(float X, float Y)> LapPath { get; }
+    public Func<int, int, WaterKind> WaterAt { get; }
+
+    /// <summary>Pen tiles an animal with the given water access may stand on.</summary>
+    public IReadOnlyList<(int X, int Y)> Standable(WaterAccess access)
+    {
+        if (!this.standable.TryGetValue(access, out IReadOnlyList<(int X, int Y)>? tiles))
+            this.standable[access] = tiles = ZooWater.StandableTiles(this.Pen, access, this.WaterAt);
+        return tiles;
+    }
 }
 
 /// <param name="ElapsedMs">Time since the last tick.</param>
@@ -263,9 +281,14 @@ public sealed class AnimalBrain
 
     private bool TryStartClimb()
     {
-        if (this.profile.Style != MoveStyle.Climber || this.world.Perches.Count == 0)
+        if (this.profile.Style != MoveStyle.Climber)
             return false;
-        this.perch = this.world.Perches[this.rng.Next(this.world.Perches.Count)];
+        var reachable = this.world.Perches
+            .Where(p => this.CanStand(p.TileX, p.TileY) && this.CanWalkTo(TileCenter(p.TileX, p.TileY)))
+            .ToList();
+        if (reachable.Count == 0)
+            return false;
+        this.perch = reachable[this.rng.Next(reachable.Count)];
         (this.targetX, this.targetY) = TileCenter(this.perch.Value.TileX, this.perch.Value.TileY);
         this.afterWalk = BrainState.ClimbUp;
         this.Enter(BrainState.WalkTo);
@@ -285,7 +308,12 @@ public sealed class AnimalBrain
         }
         else
         {
-            (int tx, int ty) = this.world.WaterTiles[this.rng.Next(this.world.WaterTiles.Count)];
+            var reachable = this.world.WaterTiles
+                .Where(t => this.CanStand(t.X, t.Y) && this.CanWalkTo(TileCenter(t.X, t.Y)))
+                .ToList();
+            if (reachable.Count == 0)
+                return false;
+            (int tx, int ty) = reachable[this.rng.Next(reachable.Count)];
             (this.targetX, this.targetY) = TileCenter(tx, ty);
             this.afterWalk = BrainState.Ground;
         }
@@ -341,7 +369,7 @@ public sealed class AnimalBrain
             {
                 if (input.Sleeping && this.perch == null)
                 {
-                    (this.targetX, this.targetY) = (this.x, this.y);
+                    (this.targetX, this.targetY) = this.NearestStandablePoint();
                 }
                 this.altitude = Approach(this.altitude, this.profile.CruiseAltitude, AirClimbSpeed * seconds);
                 float lift = Math.Clamp(this.altitude / (this.profile.CruiseAltitude * 0.5f), 0.25f, 1f);
@@ -446,7 +474,8 @@ public sealed class AnimalBrain
         if (this.perch is not PerchSpot current)
             return false;
         var options = this.world.Perches
-            .Where(p => p != current && Math.Abs(p.TileX - current.TileX) + Math.Abs(p.TileY - current.TileY) <= MaxSwingTiles)
+            .Where(p => p != current && Math.Abs(p.TileX - current.TileX) + Math.Abs(p.TileY - current.TileY) <= MaxSwingTiles
+                && this.CanStand(p.TileX, p.TileY))
             .ToList();
         if (options.Count == 0)
             return false;
@@ -495,19 +524,44 @@ public sealed class AnimalBrain
         this.y = Math.Clamp(this.y, pen.Y * TileSize + 8, (pen.Y + pen.Height) * TileSize - 8);
     }
 
+    private bool CanStand(int tileX, int tileY) => ZooWater.CanEnter(this.profile.Water, this.world.WaterAt(tileX, tileY));
+
+    private bool CanWalkTo((float X, float Y) target) =>
+        ZooWater.CanCross(this.x, this.y, target.X, target.Y, this.profile.Water, this.world.WaterAt);
+
+    /// <summary>A random tile centre in the pen that the animal may stand on.</summary>
     private (float X, float Y) RandomPenPoint(int minTiles)
     {
-        HabitatRect pen = this.world.Pen;
-        (float X, float Y) best = TileCenter(pen.X, pen.Y);
+        IReadOnlyList<(int X, int Y)> tiles = this.world.Standable(this.profile.Water);
+        if (tiles.Count == 0)
+            return (this.x, this.y);
+        (float X, float Y) best = (this.x, this.y);
         float bestDistance = -1;
         for (int attempt = 0; attempt < 8; attempt++)
         {
-            (int tx, int ty) = pen.RandomTile(this.rng);
+            (int tx, int ty) = tiles[this.rng.Next(tiles.Count)];
             (float X, float Y) point = TileCenter(tx, ty);
             float distance = Distance(this.x, this.y, point.X, point.Y);
             if (distance >= minTiles * TileSize)
                 return point;
             if (distance > bestDistance)
+                (best, bestDistance) = (point, distance);
+        }
+        return best;
+    }
+
+    /// <summary>The current ground point if the animal may stand there, else the nearest tile centre it may.</summary>
+    private (float X, float Y) NearestStandablePoint()
+    {
+        if (this.CanStand((int)MathF.Floor(this.x / TileSize), (int)MathF.Floor(this.y / TileSize)))
+            return (this.x, this.y);
+        (float X, float Y) best = (this.x, this.y);
+        float bestDistance = float.MaxValue;
+        foreach ((int tx, int ty) in this.world.Standable(this.profile.Water))
+        {
+            (float X, float Y) point = TileCenter(tx, ty);
+            float distance = Distance(this.x, this.y, point.X, point.Y);
+            if (distance < bestDistance)
                 (best, bestDistance) = (point, distance);
         }
         return best;

@@ -16,6 +16,7 @@
     <Compile Include="..\StardewZoo\CaptureTools.cs" Link="Linked\CaptureTools.cs" />
     <Compile Include="..\StardewZoo\ProximityCalls.cs" Link="Linked\ProximityCalls.cs" />
     <Compile Include="..\StardewZoo\AnimalBrain.cs" Link="Linked\AnimalBrain.cs" />
+    <Compile Include="..\StardewZoo\ZooWater.cs" Link="Linked\ZooWater.cs" />
     <Compile Include="..\StardewZoo\VisitorChat.cs" Link="Linked\VisitorChat.cs" />
     <Compile Include="..\StardewZoo\VisitorSpawnPlanner.cs" Link="Linked\VisitorSpawnPlanner.cs" />
     <Compile Include="..\StardewZoo\ZooDecor.cs" Link="Linked\ZooDecor.cs" />

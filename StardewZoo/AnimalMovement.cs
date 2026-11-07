@@ -4,7 +4,6 @@ using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
 using xTile.Layers;
-using xTile.Tiles;
 
 namespace StardewZoo;
 
@@ -21,9 +20,6 @@ internal sealed class AnimalMovement
     private const int VanillaStepInterval = 175;
     private const int StompSoundRadius = 6 * 64;
     private const int StompShakeRadius = 4 * 64;
-
-    /// <summary>Back-layer tile indexes of the animated pond water on spring_outdoorsTileSheet (see tools/make_map.py).</summary>
-    private static readonly HashSet<int> WaterTileIndexes = new() { 1229, 1230, 1231, 1306, 1249, 1274, 1322, 1324 };
 
     private static readonly HashSet<string> Waders = new() { ZooIds.Flamingo, ZooIds.NightHeron };
 
@@ -379,7 +375,7 @@ internal sealed class AnimalMovement
     {
         if (this.worlds.TryGetValue(pen.Id, out BrainWorld? world))
             return world;
-        world = new BrainWorld(pen, FindPerches(house, pen), this.GetWater(pen).Select(p => (p.X, p.Y)).ToList());
+        world = new BrainWorld(pen, FindPerches(house, pen), this.GetWater(pen).Select(p => (p.X, p.Y)).ToList(), WaterGuard.KindsFor(house));
         this.worlds[pen.Id] = world;
         return world;
     }
@@ -391,11 +387,12 @@ internal sealed class AnimalMovement
         water = new HashSet<Point>();
         if (this.location != null)
         {
+            Func<int, int, WaterKind> kindAt = WaterGuard.KindsFor(this.location);
             for (int x = pen.X; x < pen.X + pen.Width; x++)
             {
                 for (int y = pen.Y; y < pen.Y + pen.Height; y++)
                 {
-                    if (IsWater(this.location, x, y))
+                    if (kindAt(x, y) != WaterKind.None)
                         water.Add(new Point(x, y));
                 }
             }
@@ -404,15 +401,9 @@ internal sealed class AnimalMovement
         return water;
     }
 
-    private static bool IsWater(GameLocation location, int x, int y)
-    {
-        if (location.doesTileHaveProperty(x, y, "Water", "Back") != null || location.doesTileHaveProperty(x, y, "ZooWater", "Back") != null)
-            return true;
-        Tile? tile = location.Map.GetLayer("Back")?.Tiles[x, y];
-        return tile != null
-            && WaterTileIndexes.Contains(tile.TileIndex)
-            && tile.TileSheet.ImageSource.Contains("outdoorsTileSheet", StringComparison.OrdinalIgnoreCase);
-    }
+    /// <summary>Whether this class is driving the animal's position (flying, climbing, walking to water...).</summary>
+    public bool IsControlling(FarmAnimal animal) =>
+        this.entries.TryGetValue(animal.myID.Value, out Entry? entry) && ReferenceEquals(entry.Animal, animal) && (entry.Controlling || entry.Hidden);
 
     /// <summary>Perches come from a <c>ZooPerch</c> tile property (value = height in tiles) if the map defines any, else from tree-shaped tile stacks.</summary>
     private static List<PerchSpot> FindPerches(GameLocation location, HabitatRect pen)

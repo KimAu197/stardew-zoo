@@ -98,15 +98,16 @@ BOOTH = (17, 14)
 BOARD = (19, 14)
 STUDIO = (18, 16)
 HAY = (21, 17)
-WARP_TILES = ((18, 30), (19, 30))
+# The exit warps sit on the gate tiles in the bottom hedge row. Vanilla drops a player entering a building one tile above
+# warps[0], so the player arrives on the loop path (ENTRANCE) rather than in the hedge row with hedges on both sides.
+WARP_TILES = ((18, 29), (19, 29))
 ENTRANCE = (18, 28)
 PRODUCE_AREA = (13, 13, 2, 5)
 
-# Park paths (x, y, w, h); door spurs connect each facade door to the loop.
-PATHS = [
-    (1, 1, 36, 1), (1, 11, 36, 1), (1, 21, 36, 1), (1, 28, 36, 1),
-    (1, 1, 1, 28), (36, 1, 1, 28), (18, 1, 2, 29), (14, 12, 10, 9),
-] + [(outside_arrival(n)[0], outside_arrival(n)[1], 1, 1) for n in PAVILIONS]
+# Park paths (x, y, w, h): the loop (four rows joined by the side columns) must stay clear end to end; the centre
+# avenue and plaza carry the plaza props; door spurs connect each facade door to the loop.
+LOOP_PATHS = [(1, 1, 36, 1), (1, 11, 36, 1), (1, 21, 36, 1), (1, 28, 36, 1), (1, 1, 1, 28), (36, 1, 1, 28)]
+PATHS = LOOP_PATHS + [(18, 1, 2, 29), (14, 12, 10, 9)] + [(outside_arrival(n)[0], outside_arrival(n)[1], 1, 1) for n in PAVILIONS]
 
 
 def _visit(name):

@@ -25,7 +25,7 @@ from PIL import Image
 import make_pavilions
 from draw_pavilions import build_pavilion_objects, extend_blender
 from draw_tiles import OUT as ZOO_PNG
-from draw_tiles import PRIORITY, TerrainBlender, ZooSheet, build_objects, hnoise, save_preview
+from draw_tiles import PRIORITY, WATERY, TerrainBlender, ZooSheet, build_objects, hnoise, save_preview
 from zoo_layout import (BOARD, BOOTH, FACADES, HABITATS, HAY, MAP_H, MAP_W, OPEN_PENS, OUTDOOR, PATHS, PAVILIONS,
                         PRODUCE_AREA, REGIONS, STUDIO, WARP_TILES, ZOO_PERCHES, facade_door, inside_door,
                         write_csharp)
@@ -247,6 +247,26 @@ class ZooMap:
         return out
 
 
+def water_kind(corners):
+    """'Deep' for open water, 'Shallow' for shelves, streams and shorelines at least half wet, else None (dry)."""
+    wet = sum(c in WATERY for c in corners)
+    if all(c == "w" for c in corners):
+        return "Deep"
+    return "Shallow" if wet >= 2 else None
+
+
+def water_tiles(corners):
+    """ZooWater Back-tile tags for every pen tile (only animals walk in pens; the C# mod reads these, not tile indexes)."""
+    out = {}
+    for x, y, w, h in HABITATS.values():
+        for cy in range(y, y + h):
+            for cx in range(x, x + w):
+                kind = water_kind(corners[cy][cx])
+                if kind:
+                    out[(cx, cy)] = kind
+    return out
+
+
 def scatter(m, rng, pen, decals, count, ok, layer="Back"):
     """Drop single-tile decals on free cells of a pen whose terrain passes ok(corners)."""
     x, y, w, h = HABITATS[pen]
@@ -420,11 +440,12 @@ def build(zs):
             if cells[y][x] != "x":
                 m.put("Back", x, y, blender.tile(m.corners[y][x], rng))
 
+    m.water = water_tiles(m.corners)
     ox, oy, ow, oh = OUTDOOR
     for x in range(ox, ox + ow):
         for y in range(oy, oy + oh):
             edge = x in (ox, ox + ow - 1) or y in (oy, oy + oh - 1)
-            if edge and not (y == oy + oh - 1 and x in (18, 19)):
+            if edge and (x, y) not in WARP_TILES:
                 m.put("Buildings", x, y, O(BORDER_BUSH))
     fences(m)
     plaza(m)
@@ -515,6 +536,8 @@ def write_tmx(zs, m, resolved):
     for name in PAVILIONS:
         tile_data(*facade_door(name), "TouchAction", f"{TOUCH_ACTION} {name} In")
         tile_data(*inside_door(name), "TouchAction", f"{TOUCH_ACTION} {name} Out")
+    for (x, y), kind in sorted(m.water.items(), key=lambda kv: (kv[0][1], kv[0][0])):
+        tile_data(x, y, "ZooWater", kind)
 
     def layer_xml(i, name):
         return (f'  <layer id="{i}" name="{name}" width="{MAP_W}" height="{MAP_H}">\n'
