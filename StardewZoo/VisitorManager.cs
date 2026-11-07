@@ -37,7 +37,8 @@ internal sealed class VisitorManager
     }
 
     private int nextId;
-    private int projectedVisitors;
+    private readonly VisitorSpawnPlanner planner = new();
+    private readonly Dictionary<string, HashSet<string>> spawnedBy = new();
     private readonly IMonitor monitor;
     private readonly ITranslationHelper translation;
     private readonly IInputHelper input;
@@ -56,16 +57,23 @@ internal sealed class VisitorManager
         helper.Events.GameLoop.UpdateTicked += this.OnUpdateTicked;
     }
 
-    public void SetProjection(int visitors) => this.projectedVisitors = visitors;
+    public void StartDay()
+    {
+        this.planner.Reset();
+        this.spawnedBy.Clear();
+    }
 
+    /// <summary>Called every ten minutes: each zoo spawns visitors at a rate (and up to a crowd size) set by today's demand at the current price.</summary>
     public void TrySpawn()
     {
         if (!Context.IsMainPlayer || !Context.IsWorldReady)
             return;
         int hour = Game1.timeOfDay;
-        if (hour < 800 || hour >= 1800 || this.projectedVisitors <= 0)
+        if (hour < VisitorSpawnPlanner.OpenTime || hour >= VisitorSpawnPlanner.CloseTime)
             return;
 
+        ModConfig config = this.config();
+        double rating = ZooIncome.AverageRating(this.save().Reviews);
         Utility.ForEachBuilding(building =>
         {
             if (!ZooIds.IsZoo(building.buildingType.Value) || building.isUnderConstruction())
@@ -73,12 +81,18 @@ internal sealed class VisitorManager
             if (building.GetIndoors() is not AnimalHouse house)
                 return true;
 
-            int cap = Math.Clamp(this.projectedVisitors / 8, 1, 6);
-            int current = house.characters.Count(IsVisitor);
-            if (current >= cap)
-                return true;
+            string zooId = house.NameOrUniqueName;
+            if (!this.spawnedBy.TryGetValue(zooId, out HashSet<string>? spawned))
+                this.spawnedBy[zooId] = spawned = new HashSet<string>();
+            spawned.RemoveWhere(name => !this.states.ContainsKey(name));
 
-            this.SpawnOne(house);
+            int daily = ZooIncome.ExpectedVisitors(new ZooSnapshot(building.buildingType.Value, AnimalTypes(house)), config, rating);
+            int due = this.planner.SpawnsDue(zooId, daily, spawned.Count, config);
+            for (int i = 0; i < due; i++)
+            {
+                spawned.Add(NamePrefix + this.nextId);
+                this.SpawnOne(house);
+            }
             return true;
         });
     }

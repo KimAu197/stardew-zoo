@@ -82,8 +82,7 @@ internal sealed class ModEntry : Mod
     {
         HabitatKeeper.SnapAll(Random.Shared);
         HabitatKeeper.FeedAll();
-        DailyIncome projection = this.Project(Game1.Date.TotalDays);
-        this.visitors.SetProjection(projection.Visitors);
+        this.visitors.StartDay();
 
         if (this.lastPayout is not { } payout)
             return;
@@ -168,24 +167,59 @@ internal sealed class ModEntry : Mod
 
     private void OpenTicketMenu()
     {
-        Game1.activeClickableMenu = new NumberSelectionMenu(
-            this.Helper.Translation.Get("ticket.prompt"),
+        List<ZooSnapshot> zoos = this.ScanZoos();
+        double rating = ZooIncome.AverageRating(this.save.Reviews);
+        int suggested = ZooIncome.SuggestedPrice(zoos, this.config, rating);
+        string advice = suggested > 0
+            ? this.Helper.Translation.Get("ticket.suggest", new { price = suggested, visitors = ZooIncome.Forecast(zoos, this.config, rating, suggested).Visitors })
+            : this.Helper.Translation.Get("ticket.no-animals");
+
+        Game1.activeClickableMenu = new TicketPriceMenu(
+            this.Helper.Translation.Get("ticket.prompt") + "\n" + advice,
             this.OnTicketChosen,
-            -1,
             this.config.MinTicketPrice,
             this.config.MaxTicketPrice,
-            this.config.TicketPrice
+            this.config.TicketPrice,
+            price =>
+            {
+                (int visitors, int income) = ZooIncome.Forecast(zoos, this.config, rating, price);
+                return this.Helper.Translation.Get("ticket.forecast", new { visitors, income });
+            }
         );
     }
 
     private void OnTicketChosen(int number, int price, Farmer who)
     {
+        List<ZooSnapshot> zoos = this.ScanZoos();
+        double rating = ZooIncome.AverageRating(this.save.Reviews);
+        int before = ZooIncome.Forecast(zoos, this.config, rating, this.config.TicketPrice).Visitors;
+
         this.config.TicketPrice = Math.Clamp(number, this.config.MinTicketPrice, this.config.MaxTicketPrice);
         this.Helper.WriteConfig(this.config);
         Game1.addHUDMessage(new HUDMessage(
             this.Helper.Translation.Get("ticket.set", new { price = this.config.TicketPrice }),
             HUDMessage.newQuest_type
         ));
+
+        int after = ZooIncome.Forecast(zoos, this.config, rating, this.config.TicketPrice).Visitors;
+        int suggested = ZooIncome.SuggestedPrice(zoos, this.config, rating);
+        string? crowdKey = CrowdHintKey(this.config.TicketPrice, suggested, before, after);
+        if (crowdKey != null)
+            Game1.addHUDMessage(new HUDMessage(this.Helper.Translation.Get(crowdKey, new { visitors = after }), HUDMessage.newQuest_type));
+    }
+
+    /// <summary>Which hint (if any) explains how today's crowd reacts to a new price; visitors spawn at the new rate from now on.</summary>
+    private static string? CrowdHintKey(int price, int suggested, int visitorsBefore, int visitorsAfter)
+    {
+        if (suggested <= 0)
+            return null;
+        if (price <= 0)
+            return "ticket.crowd-free";
+        if (visitorsAfter < visitorsBefore * 0.9)
+            return price > suggested * 1.5 ? "ticket.crowd-empty" : "ticket.crowd-down";
+        if (visitorsAfter > visitorsBefore * 1.1)
+            return price > suggested * 1.15 ? "ticket.crowd-up-pricey" : "ticket.crowd-up";
+        return null;
     }
 
     private void OpenReviews()
@@ -240,12 +274,22 @@ internal sealed class ModEntry : Mod
                     habitats = zoo.FilledHabitats,
                     fair = zoo.FairValue,
                     visitors = zoo.Visitors,
-                    income = zoo.Income
+                    income = zoo.Income,
+                    onscreen = VisitorSpawnPlanner.MaxOnScreen(zoo.Visitors, this.config)
                 }),
                 LogLevel.Info
             );
         }
         this.Monitor.Log(this.Helper.Translation.Get("command.total", new { income = result.TotalIncome, visitors = result.Visitors }), LogLevel.Info);
+
+        List<ZooSnapshot> zoos = this.ScanZoos();
+        double rating = ZooIncome.AverageRating(this.save.Reviews);
+        int suggested = ZooIncome.SuggestedPrice(zoos, this.config, rating);
+        if (suggested > 0)
+        {
+            (int visitors, int income) = ZooIncome.Forecast(zoos, this.config, rating, suggested);
+            this.Monitor.Log(this.Helper.Translation.Get("command.suggest", new { price = suggested, visitors, income }), LogLevel.Info);
+        }
     }
 
     private DailyIncome Project(int seed)

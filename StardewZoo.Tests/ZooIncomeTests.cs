@@ -87,7 +87,7 @@ public class ZooIncomeTests
     public void HighPrice_CutsDemand()
     {
         var cheap = new ModConfig { TicketPrice = 20 };
-        var expensive = new ModConfig { TicketPrice = 400 };
+        var expensive = new ModConfig { TicketPrice = 150 };
         var zoo = new ZooSnapshot(ZooIds.Zoo, new[] { Penguin, Panda });
 
         DailyIncome low = Calc(cheap, null, zoo);

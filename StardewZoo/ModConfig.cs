@@ -18,13 +18,32 @@ public sealed class ModConfig
 
     public int BaseFair { get; set; } = 20;
 
-    public int BaseVisitors { get; set; } = 4;
+    /// <summary>Daily visitors any stocked zoo draws, before tier / price / rating.</summary>
+    public double DemandBase { get; set; } = 2;
 
-    public int VisitorsPerAnimal { get; set; } = 3;
+    /// <summary>Daily visitors for the first species; more species add less each (see <see cref="SpeciesDiminishing"/>).</summary>
+    public double DemandPerSpecies { get; set; } = 10;
 
-    public int VisitorsPerSpecies { get; set; } = 5;
+    /// <summary>Exponent on species count: 1 = linear, lower = stronger diminishing returns.</summary>
+    public double SpeciesDiminishing { get; set; } = 0.75;
 
-    public int VisitorsPerHabitat { get; set; } = 4;
+    /// <summary>Daily visitors per sqrt(total animals), a weaker pull than variety.</summary>
+    public double DemandPerAnimal { get; set; } = 3;
+
+    /// <summary>Extra demand as the price drops from fair toward 1g (0.5 = up to +50%).</summary>
+    public double CheapPriceBoost { get; set; } = 0.5;
+
+    /// <summary>Demand multiplier on a free (0g) day: the biggest crowd, but no ticket income.</summary>
+    public double FreeEntryBoost { get; set; } = 1.6;
+
+    /// <summary>How steeply demand falls above the fair price: multiplier = e^(-k * (price/fair - 1)).</summary>
+    public double OverpriceElasticity { get; set; } = 1.6;
+
+    /// <summary>Daily visitors represented by each visitor NPC walking around at once.</summary>
+    public int VisitorsPerOnScreenNpc { get; set; } = 7;
+
+    /// <summary>Most visitor NPCs walking around one zoo at once (performance cap).</summary>
+    public int MaxVisitorsOnScreen { get; set; } = 14;
 
     public int MaxStoredReviews { get; set; } = 12;
 

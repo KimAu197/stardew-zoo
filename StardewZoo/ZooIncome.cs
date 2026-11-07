@@ -48,26 +48,72 @@ public static class ZooIncome
         return Math.Max(0, (int)Math.Round(raw, MidpointRounding.AwayFromZero));
     }
 
+    /// <summary>Visitors a zoo draws at a fair price and a neutral rating: species variety counts most (with diminishing returns), head count a little.</summary>
     public static double BaseDemand(ZooSnapshot zoo, ModConfig config)
     {
         int animals = zoo.AnimalTypes.Count;
         if (animals == 0)
             return 0;
         int species = zoo.AnimalTypes.Distinct().Count();
-        int habitats = ZooHabitats.CountFilled(zoo.AnimalTypes);
-        return (config.BaseVisitors + animals * config.VisitorsPerAnimal + species * config.VisitorsPerSpecies + habitats * config.VisitorsPerHabitat)
-            * TierMultiplier(zoo.BuildingType, config);
+        double speciesPull = config.DemandPerSpecies * Math.Pow(species, config.SpeciesDiminishing);
+        double animalPull = config.DemandPerAnimal * Math.Sqrt(animals);
+        return (config.DemandBase + speciesPull + animalPull) * TierMultiplier(zoo.BuildingType, config);
     }
 
-    public static double PriceFactor(int ticketPrice, int fairValue)
+    /// <summary>
+    /// Price elasticity: free entry draws the biggest crowd, a cheap ticket a modest boost, the fair price is neutral (1.0),
+    /// and each step above fair cuts demand exponentially. Income (visitors x price) peaks at the fair price.
+    /// </summary>
+    public static double PriceFactor(int ticketPrice, int fairValue, ModConfig config)
     {
+        double cheapBoost = Math.Max(0, config.CheapPriceBoost);
         if (ticketPrice <= 0)
-            return 1.75;
+            return Math.Max(config.FreeEntryBoost, 1 + cheapBoost);
         double ratio = ticketPrice / (double)Math.Max(fairValue, 1);
-        return Math.Clamp(1.0 / ratio, 0.1, 2.0);
+        if (ratio <= 1)
+            return 1 + cheapBoost * (1 - ratio);
+        return Math.Exp(-Math.Max(0, config.OverpriceElasticity) * (ratio - 1));
     }
 
     public static double RatingFactor(double averageRating) => Math.Clamp(averageRating / StartingRating, 0.25, 1.75);
+
+    /// <summary>Noise-free visitors per day for one zoo at the given price (defaults to the configured price).</summary>
+    public static double ExpectedDemand(ZooSnapshot zoo, ModConfig config, double averageRating, int? ticketPrice = null)
+    {
+        if (zoo.AnimalTypes.Count == 0)
+            return 0;
+        int price = ticketPrice ?? config.TicketPrice;
+        return BaseDemand(zoo, config) * PriceFactor(price, FairValue(zoo, config), config) * RatingFactor(averageRating);
+    }
+
+    public static int ExpectedVisitors(ZooSnapshot zoo, ModConfig config, double averageRating, int? ticketPrice = null) =>
+        (int)Math.Round(ExpectedDemand(zoo, config, averageRating, ticketPrice), MidpointRounding.AwayFromZero);
+
+    /// <summary>Noise-free daily visitors and ticket income across all zoos at a price.</summary>
+    public static (int Visitors, int Income) Forecast(IEnumerable<ZooSnapshot> zoos, ModConfig config, double averageRating, int ticketPrice)
+    {
+        int visitors = zoos.Sum(zoo => ExpectedVisitors(zoo, config, averageRating, ticketPrice));
+        return (visitors, visitors * Math.Max(0, ticketPrice));
+    }
+
+    /// <summary>The ticket price (in steps of 5g) that earns the most per day; 0 when there are no animals.</summary>
+    public static int SuggestedPrice(IReadOnlyList<ZooSnapshot> zoos, ModConfig config, double averageRating)
+    {
+        if (zoos.All(zoo => zoo.AnimalTypes.Count == 0))
+            return 0;
+        int best = 0;
+        int bestIncome = -1;
+        for (int price = Math.Max(5, config.MinTicketPrice); price <= config.MaxTicketPrice; price += 5)
+        {
+            int income = Forecast(zoos, config, averageRating, price).Income;
+            if (income > bestIncome)
+            {
+                best = price;
+                bestIncome = income;
+            }
+        }
+        return best;
+    }
 
     public static DailyIncome Calculate(
         IEnumerable<ZooSnapshot> zoos,
@@ -89,7 +135,7 @@ public static class ZooIncome
             int visitors = 0;
             if (animals > 0)
             {
-                double demand = BaseDemand(zoo, config) * PriceFactor(config.TicketPrice, fair) * RatingFactor(rating);
+                double demand = ExpectedDemand(zoo, config, rating);
                 double noise = 0.9 + rng.NextDouble() * 0.2;
                 visitors = Math.Max(0, (int)Math.Round(demand * noise, MidpointRounding.AwayFromZero));
             }

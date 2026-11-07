@@ -16,6 +16,7 @@
     <Compile Include="..\StardewZoo\ProximityCalls.cs" Link="Linked\ProximityCalls.cs" />
     <Compile Include="..\StardewZoo\AnimalBrain.cs" Link="Linked\AnimalBrain.cs" />
     <Compile Include="..\StardewZoo\VisitorChat.cs" Link="Linked\VisitorChat.cs" />
+    <Compile Include="..\StardewZoo\VisitorSpawnPlanner.cs" Link="Linked\VisitorSpawnPlanner.cs" />
   </ItemGroup>
 
   <ItemGroup>
