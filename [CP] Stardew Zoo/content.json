@@ -4,7 +4,25 @@
     {
       "LogName": "Zoo textures",
       "Action": "Load",
-      "Target": "Mods/StardewZoo/Zoo, Mods/StardewZoo/BigZoo, Mods/StardewZoo/DeluxeZoo, Mods/StardewZoo/Penguin, Mods/StardewZoo/BabyPenguin, Mods/StardewZoo/PenguinShop, Mods/StardewZoo/Panda, Mods/StardewZoo/BabyPanda, Mods/StardewZoo/PandaShop, Mods/StardewZoo/Lion, Mods/StardewZoo/BabyLion, Mods/StardewZoo/LionShop, Mods/StardewZoo/Giraffe, Mods/StardewZoo/BabyGiraffe, Mods/StardewZoo/GiraffeShop",
+      "Target": "Mods/StardewZoo/Zoo, Mods/StardewZoo/BigZoo, Mods/StardewZoo/DeluxeZoo, Mods/StardewZoo/Penguin, Mods/StardewZoo/BabyPenguin, Mods/StardewZoo/PenguinShop, Mods/StardewZoo/Panda, Mods/StardewZoo/BabyPanda, Mods/StardewZoo/PandaShop, Mods/StardewZoo/Lion, Mods/StardewZoo/BabyLion, Mods/StardewZoo/LionShop, Mods/StardewZoo/Giraffe, Mods/StardewZoo/BabyGiraffe, Mods/StardewZoo/GiraffeShop, Mods/StardewZoo/Monkey, Mods/StardewZoo/BabyMonkey, Mods/StardewZoo/MonkeyShop, Mods/StardewZoo/Capybara, Mods/StardewZoo/BabyCapybara, Mods/StardewZoo/CapybaraShop, Mods/StardewZoo/Elephant, Mods/StardewZoo/BabyElephant, Mods/StardewZoo/ElephantShop, Mods/StardewZoo/Dinosaur, Mods/StardewZoo/BabyDinosaur, Mods/StardewZoo/DinosaurShop, Mods/StardewZoo/Gorilla, Mods/StardewZoo/BabyGorilla, Mods/StardewZoo/GorillaShop, Mods/StardewZoo/Raccoon, Mods/StardewZoo/BabyRaccoon, Mods/StardewZoo/RaccoonShop, Mods/StardewZoo/Alpaca, Mods/StardewZoo/BabyAlpaca, Mods/StardewZoo/AlpacaShop, Mods/StardewZoo/SeaLion, Mods/StardewZoo/BabySeaLion, Mods/StardewZoo/SeaLionShop, Mods/StardewZoo/Bear, Mods/StardewZoo/BabyBear, Mods/StardewZoo/BearShop",
+      "FromFile": "assets/{{TargetWithoutPath}}.png"
+    },
+    {
+      "LogName": "Zoo tilesheet",
+      "Action": "Load",
+      "Target": "Maps/zoo_tiles",
+      "FromFile": "assets/zoo_tiles.png"
+    },
+    {
+      "LogName": "Zoo interior map",
+      "Action": "Load",
+      "Target": "Maps/StardewZoo",
+      "FromFile": "assets/StardewZoo.tmx"
+    },
+    {
+      "LogName": "Zoo visitors",
+      "Action": "Load",
+      "Target": "Characters/StardewZooVisitor0, Characters/StardewZooVisitor1, Characters/StardewZooVisitor2, Characters/StardewZooVisitor3",
       "FromFile": "assets/{{TargetWithoutPath}}.png"
     },
     {
@@ -16,126 +34,167 @@
           "Name": "{{i18n:building.Zoo.name}}",
           "Description": "{{i18n:building.Zoo.description}}",
           "Texture": "Mods/StardewZoo/Zoo",
-          "UpgradeSignTile": "3, 3",
-          "UpgradeSignHeight": 31.0,
-          "Size": { "X": 7, "Y": 4 },
-          "SourceRect": { "X": 0, "Y": 0, "Width": 112, "Height": 112 },
+          "UpgradeSignTile": "3, 2",
+          "UpgradeSignHeight": 40.0,
+          "Size": {
+            "X": 7,
+            "Y": 4
+          },
+          "SourceRect": {
+            "X": 0,
+            "Y": 0,
+            "Width": 112,
+            "Height": 128
+          },
           "Builder": "Robin",
           "BuildDays": 0,
           "BuildCost": 5000,
           "BuildMaterials": [
-            { "ItemId": "(O)388", "Amount": 200 },
-            { "ItemId": "(O)390", "Amount": 100 }
+            {
+              "ItemId": "(O)388",
+              "Amount": 200
+            },
+            {
+              "ItemId": "(O)390",
+              "Amount": 100
+            }
           ],
-          "HumanDoor": { "X": 1, "Y": 3 },
-          "AnimalDoor": { "X": 3, "Y": 3, "Width": 2, "Height": 1 },
-          "AnimalDoorOpenDuration": 0.4,
-          "AnimalDoorOpenSound": "doorCreak",
-          "AnimalDoorCloseDuration": 0.6,
-          "AnimalDoorCloseSound": "doorCreakReverse",
-          "IndoorMap": "Barn",
+          "HumanDoor": {
+            "X": 1,
+            "Y": 3
+          },
+          "IndoorMap": "StardewZoo",
           "IndoorMapType": "StardewValley.AnimalHouse",
-          "MaxOccupants": 4,
-          "ValidOccupantTypes": [ "StardewZoo.Zoo" ],
+          "MaxOccupants": 8,
+          "HayCapacity": 16,
+          "ValidOccupantTypes": [
+            "StardewZoo.Zoo"
+          ],
           "AllowAnimalPregnancy": false,
           "IndoorItems": [
-            { "Id": "Default_FeedHopper", "ItemId": "(BC)99", "Tile": { "X": 6, "Y": 3 }, "Indestructible": true, "ClearTile": true }
-          ],
-          "DrawLayers": [
-            { "Id": "Default_AnimalDoor_Bottom", "SourceRect": { "X": 0, "Y": 112, "Width": 32, "Height": 16 }, "DrawPosition": "48, 96", "SortTileOffset": 0.02, "AnimalDoorOffset": { "X": 0, "Y": -19 } },
-            { "Id": "Default_AnimalDoor_Top", "SourceRect": { "X": 0, "Y": 112, "Width": 32, "Height": 12 }, "DrawPosition": "48, 84", "SortTileOffset": 0.02, "AnimalDoorOffset": { "X": 0, "Y": -19 } },
-            { "Id": "Default_AnimalDoor_Open_Top", "SourceRect": { "X": 32, "Y": 112, "Width": 32, "Height": 16 }, "DrawPosition": "48, 80", "SortTileOffset": 1.0 },
-            { "Id": "Default_AnimalDoor_Open_Bottom", "SourceRect": { "X": 64, "Y": 112, "Width": 32, "Height": 16 }, "DrawPosition": "48, 96", "SortTileOffset": 1.0 }
+            {
+              "Id": "Default_FeedHopper",
+              "ItemId": "(BC)99",
+              "Tile": {
+                "X": 21,
+                "Y": 17
+              },
+              "Indestructible": true,
+              "ClearTile": true
+            }
           ]
         },
         "StardewZoo.BigZoo": {
           "Name": "{{i18n:building.BigZoo.name}}",
-          "NameForGeneralType": "{{i18n:building.Zoo.name}}",
           "Description": "{{i18n:building.BigZoo.description}}",
           "Texture": "Mods/StardewZoo/BigZoo",
-          "UpgradeSignTile": "3, 3",
-          "UpgradeSignHeight": 31.0,
-          "Size": { "X": 7, "Y": 4 },
-          "SourceRect": { "X": 0, "Y": 0, "Width": 112, "Height": 112 },
+          "UpgradeSignTile": "3, 2",
+          "UpgradeSignHeight": 40.0,
+          "Size": {
+            "X": 7,
+            "Y": 4
+          },
+          "SourceRect": {
+            "X": 0,
+            "Y": 0,
+            "Width": 112,
+            "Height": 128
+          },
           "Builder": "Robin",
           "BuildDays": 0,
           "BuildCost": 10000,
           "BuildMaterials": [
-            { "ItemId": "(O)388", "Amount": 250 },
-            { "ItemId": "(O)390", "Amount": 125 }
+            {
+              "ItemId": "(O)388",
+              "Amount": 250
+            },
+            {
+              "ItemId": "(O)390",
+              "Amount": 125
+            }
           ],
-          "BuildingToUpgrade": "StardewZoo.Zoo",
-          "HumanDoor": { "X": 1, "Y": 3 },
-          "AnimalDoor": { "X": 4, "Y": 3, "Width": 2, "Height": 1 },
-          "AnimalDoorOpenDuration": 0.4,
-          "AnimalDoorOpenSound": "doorCreak",
-          "AnimalDoorCloseDuration": 0.6,
-          "AnimalDoorCloseSound": "doorCreakReverse",
-          "IndoorMap": "Barn2",
+          "HumanDoor": {
+            "X": 1,
+            "Y": 3
+          },
+          "IndoorMap": "StardewZoo",
           "IndoorMapType": "StardewValley.AnimalHouse",
-          "MaxOccupants": 8,
-          "ValidOccupantTypes": [ "StardewZoo.Zoo" ],
+          "MaxOccupants": 16,
+          "HayCapacity": 32,
+          "ValidOccupantTypes": [
+            "StardewZoo.Zoo"
+          ],
           "AllowAnimalPregnancy": false,
-          "IndoorItemMoves": [
-            { "Id": "Default_ClearSpace_WaterTrough_Left", "Source": { "X": 15, "Y": 3 }, "Destination": { "X": 18, "Y": 13 }, "Size": { "X": 1, "Y": 1 } },
-            { "Id": "Default_ClearSpace_WaterTrough_Right", "Source": { "X": 16, "Y": 3 }, "Destination": { "X": 19, "Y": 13 }, "Size": { "X": 1, "Y": 1 } },
-            { "Id": "Default_ClearSpace_Barrel", "Source": { "X": 1, "Y": 4 }, "Destination": { "X": 20, "Y": 3 }, "Size": { "X": 1, "Y": 1 } },
-            { "Id": "Default_KeepAlongWall", "Source": { "X": 16, "Y": 4 }, "Destination": { "X": 20, "Y": 4 }, "Size": { "X": 1, "Y": 9 } }
-          ],
           "IndoorItems": [
-            { "Id": "Default_FeedHopper", "ItemId": "(BC)99", "Tile": { "X": 6, "Y": 3 }, "Indestructible": true, "ClearTile": true }
+            {
+              "Id": "Default_FeedHopper",
+              "ItemId": "(BC)99",
+              "Tile": {
+                "X": 21,
+                "Y": 17
+              },
+              "Indestructible": true,
+              "ClearTile": true
+            }
           ],
-          "DrawLayers": [
-            { "Id": "Default_AnimalDoor_Bottom", "SourceRect": { "X": 0, "Y": 112, "Width": 32, "Height": 16 }, "DrawPosition": "64, 96", "SortTileOffset": 0.02, "AnimalDoorOffset": { "X": 0, "Y": -19 } },
-            { "Id": "Default_AnimalDoor_Top", "SourceRect": { "X": 0, "Y": 112, "Width": 32, "Height": 12 }, "DrawPosition": "64, 84", "SortTileOffset": 0.02, "AnimalDoorOffset": { "X": 0, "Y": -19 } },
-            { "Id": "Default_AnimalDoor_Open_Top", "SourceRect": { "X": 32, "Y": 112, "Width": 32, "Height": 16 }, "DrawPosition": "64, 80", "SortTileOffset": 1.0 },
-            { "Id": "Default_AnimalDoor_Open_Bottom", "SourceRect": { "X": 64, "Y": 112, "Width": 32, "Height": 16 }, "DrawPosition": "64, 96", "SortTileOffset": 1.0 }
-          ]
+          "NameForGeneralType": "{{i18n:building.Zoo.name}}",
+          "BuildingToUpgrade": "StardewZoo.Zoo"
         },
         "StardewZoo.DeluxeZoo": {
           "Name": "{{i18n:building.DeluxeZoo.name}}",
-          "NameForGeneralType": "{{i18n:building.Zoo.name}}",
           "Description": "{{i18n:building.DeluxeZoo.description}}",
           "Texture": "Mods/StardewZoo/DeluxeZoo",
-          "UpgradeSignTile": "4.5, 2",
-          "UpgradeSignHeight": 31.0,
-          "Size": { "X": 7, "Y": 4 },
-          "SourceRect": { "X": 0, "Y": 0, "Width": 112, "Height": 112 },
+          "UpgradeSignTile": "3, 2",
+          "UpgradeSignHeight": 40.0,
+          "Size": {
+            "X": 7,
+            "Y": 4
+          },
+          "SourceRect": {
+            "X": 0,
+            "Y": 0,
+            "Width": 112,
+            "Height": 128
+          },
           "Builder": "Robin",
           "BuildDays": 0,
           "BuildCost": 17500,
           "BuildMaterials": [
-            { "ItemId": "(O)388", "Amount": 325 },
-            { "ItemId": "(O)390", "Amount": 175 }
+            {
+              "ItemId": "(O)388",
+              "Amount": 325
+            },
+            {
+              "ItemId": "(O)390",
+              "Amount": 175
+            }
           ],
-          "BuildingToUpgrade": "StardewZoo.BigZoo",
-          "HumanDoor": { "X": 1, "Y": 3 },
-          "AnimalDoor": { "X": 4, "Y": 3, "Width": 2, "Height": 1 },
-          "AnimalDoorOpenDuration": 0.4,
-          "AnimalDoorOpenSound": "doorCreak",
-          "AnimalDoorCloseDuration": 0.6,
-          "AnimalDoorCloseSound": "doorCreakReverse",
-          "IndoorMap": "Barn3",
+          "HumanDoor": {
+            "X": 1,
+            "Y": 3
+          },
+          "IndoorMap": "StardewZoo",
           "IndoorMapType": "StardewValley.AnimalHouse",
-          "MaxOccupants": 12,
-          "ValidOccupantTypes": [ "StardewZoo.Zoo" ],
+          "MaxOccupants": 24,
+          "HayCapacity": 48,
+          "ValidOccupantTypes": [
+            "StardewZoo.Zoo"
+          ],
           "AllowAnimalPregnancy": false,
-          "IndoorItemMoves": [
-            { "Id": "Default_ClearSpace_Barrel", "Source": { "X": 20, "Y": 3 }, "Destination": { "X": 1, "Y": 4 }, "Size": { "X": 1, "Y": 1 } },
-            { "Id": "Default_KeepAlongWall_Top", "Source": { "X": 20, "Y": 5 }, "Destination": { "X": 21, "Y": 13 }, "Size": { "X": 1, "Y": 1 } },
-            { "Id": "Default_KeepAlongWall_Middle", "Source": { "X": 20, "Y": 6 }, "Destination": { "X": 23, "Y": 6 }, "Size": { "X": 1, "Y": 6 } },
-            { "Id": "Default_ClearSpace_Bucket", "Source": { "X": 20, "Y": 4 }, "Destination": { "X": 20, "Y": 13 }, "Size": { "X": 1, "Y": 1 } },
-            { "Id": "Default_ShiftSpace_NextToBarrel", "Source": { "X": 20, "Y": 12 }, "Destination": { "X": 22, "Y": 13 }, "Size": { "X": 1, "Y": 1 } }
-          ],
           "IndoorItems": [
-            { "Id": "Default_FeedHopper", "ItemId": "(BC)99", "Tile": { "X": 6, "Y": 3 }, "Indestructible": true, "ClearTile": true }
+            {
+              "Id": "Default_FeedHopper",
+              "ItemId": "(BC)99",
+              "Tile": {
+                "X": 21,
+                "Y": 17
+              },
+              "Indestructible": true,
+              "ClearTile": true
+            }
           ],
-          "DrawLayers": [
-            { "Id": "Default_AnimalDoor_Bottom", "SourceRect": { "X": 0, "Y": 112, "Width": 32, "Height": 16 }, "DrawPosition": "64, 96", "SortTileOffset": 0.02, "AnimalDoorOffset": { "X": 0, "Y": -19 } },
-            { "Id": "Default_AnimalDoor_Top", "SourceRect": { "X": 0, "Y": 112, "Width": 32, "Height": 12 }, "DrawPosition": "64, 84", "SortTileOffset": 0.02, "AnimalDoorOffset": { "X": 0, "Y": -19 } },
-            { "Id": "Default_AnimalDoor_Open_Top", "SourceRect": { "X": 32, "Y": 112, "Width": 32, "Height": 16 }, "DrawPosition": "64, 80", "SortTileOffset": 1.0 },
-            { "Id": "Default_AnimalDoor_Open_Bottom", "SourceRect": { "X": 64, "Y": 112, "Width": 32, "Height": 16 }, "DrawPosition": "64, 96", "SortTileOffset": 1.0 }
-          ]
+          "NameForGeneralType": "{{i18n:building.Zoo.name}}",
+          "BuildingToUpgrade": "StardewZoo.BigZoo"
         }
       }
     },
@@ -151,7 +210,12 @@
           "PurchasePrice": 1500,
           "SellPrice": 1500,
           "ShopTexture": "Mods/StardewZoo/PenguinShop",
-          "ShopSourceRect": { "X": 0, "Y": 0, "Width": 32, "Height": 16 },
+          "ShopSourceRect": {
+            "X": 0,
+            "Y": 0,
+            "Width": 32,
+            "Height": 16
+          },
           "ShopDescription": "{{i18n:animal.Penguin.description}}",
           "ShopMissingBuildingDescription": "{{i18n:animal.missing-building}}",
           "RequiredBuilding": "StardewZoo.Zoo",
@@ -163,22 +227,25 @@
           "CanEatGoldenCrackers": false,
           "ProfessionForHappinessBoost": 3,
           "ProfessionForQualityBoost": 3,
-          "Sound": "Duck",
+          "Sound": "StardewZoo_Penguin",
           "Texture": "Mods/StardewZoo/Penguin",
           "BabyTexture": "Mods/StardewZoo/BabyPenguin",
           "UseFlippedRightForLeft": true,
+          "UseDoubleUniqueAnimationFrames": false,
           "SpriteWidth": 16,
           "SpriteHeight": 16,
-          "UseDoubleUniqueAnimationFrames": false,
           "SleepFrame": 12,
-          "EmoteOffset": { "X": 0, "Y": -16 },
           "GrassEatAmount": 2,
           "HappinessDrain": 7,
+          "ShowInSummitCredits": false,
+          "EmoteOffset": {
+            "X": 0,
+            "Y": -16
+          },
           "UpDownPetHitboxTileSize": "1, 1",
           "LeftRightPetHitboxTileSize": "1, 1",
           "BabyUpDownPetHitboxTileSize": "1, 1",
-          "BabyLeftRightPetHitboxTileSize": "1, 1",
-          "ShowInSummitCredits": false
+          "BabyLeftRightPetHitboxTileSize": "1, 1"
         },
         "StardewZoo.Panda": {
           "DisplayName": "{{i18n:animal.Panda.name}}",
@@ -187,7 +254,12 @@
           "PurchasePrice": 3000,
           "SellPrice": 3000,
           "ShopTexture": "Mods/StardewZoo/PandaShop",
-          "ShopSourceRect": { "X": 0, "Y": 0, "Width": 32, "Height": 16 },
+          "ShopSourceRect": {
+            "X": 0,
+            "Y": 0,
+            "Width": 32,
+            "Height": 16
+          },
           "ShopDescription": "{{i18n:animal.Panda.description}}",
           "ShopMissingBuildingDescription": "{{i18n:animal.missing-building}}",
           "RequiredBuilding": "StardewZoo.Zoo",
@@ -199,21 +271,24 @@
           "CanEatGoldenCrackers": false,
           "ProfessionForHappinessBoost": 3,
           "ProfessionForQualityBoost": 3,
-          "Sound": "pig",
+          "Sound": "StardewZoo_Panda",
           "Texture": "Mods/StardewZoo/Panda",
           "BabyTexture": "Mods/StardewZoo/BabyPanda",
           "UseFlippedRightForLeft": true,
+          "UseDoubleUniqueAnimationFrames": false,
           "SpriteWidth": 32,
           "SpriteHeight": 32,
           "SleepFrame": 12,
-          "Shadow": { "Visible": false },
           "GrassEatAmount": 4,
           "HappinessDrain": 6,
-          "UpDownPetHitboxTileSize": "1, 1.75",
+          "ShowInSummitCredits": false,
+          "Shadow": {
+            "Visible": false
+          },
+          "UpDownPetHitboxTileSize": "1.5, 1.75",
           "LeftRightPetHitboxTileSize": "1.75, 1.25",
           "BabyUpDownPetHitboxTileSize": "1, 1.75",
-          "BabyLeftRightPetHitboxTileSize": "1.75, 1",
-          "ShowInSummitCredits": false
+          "BabyLeftRightPetHitboxTileSize": "1.75, 1"
         },
         "StardewZoo.Lion": {
           "DisplayName": "{{i18n:animal.Lion.name}}",
@@ -222,7 +297,12 @@
           "PurchasePrice": 4000,
           "SellPrice": 4000,
           "ShopTexture": "Mods/StardewZoo/LionShop",
-          "ShopSourceRect": { "X": 0, "Y": 0, "Width": 32, "Height": 16 },
+          "ShopSourceRect": {
+            "X": 0,
+            "Y": 0,
+            "Width": 32,
+            "Height": 16
+          },
           "ShopDescription": "{{i18n:animal.Lion.description}}",
           "ShopMissingBuildingDescription": "{{i18n:animal.missing-building}}",
           "RequiredBuilding": "StardewZoo.Zoo",
@@ -234,21 +314,24 @@
           "CanEatGoldenCrackers": false,
           "ProfessionForHappinessBoost": 3,
           "ProfessionForQualityBoost": 3,
-          "Sound": "cow",
+          "Sound": "StardewZoo_Lion",
           "Texture": "Mods/StardewZoo/Lion",
           "BabyTexture": "Mods/StardewZoo/BabyLion",
           "UseFlippedRightForLeft": true,
+          "UseDoubleUniqueAnimationFrames": false,
           "SpriteWidth": 32,
           "SpriteHeight": 32,
           "SleepFrame": 12,
-          "Shadow": { "Visible": false },
           "GrassEatAmount": 4,
           "HappinessDrain": 6,
+          "ShowInSummitCredits": false,
+          "Shadow": {
+            "Visible": false
+          },
           "UpDownPetHitboxTileSize": "1.5, 1.75",
           "LeftRightPetHitboxTileSize": "1.75, 1.25",
           "BabyUpDownPetHitboxTileSize": "1, 1.75",
-          "BabyLeftRightPetHitboxTileSize": "1.75, 1",
-          "ShowInSummitCredits": false
+          "BabyLeftRightPetHitboxTileSize": "1.75, 1"
         },
         "StardewZoo.Giraffe": {
           "DisplayName": "{{i18n:animal.Giraffe.name}}",
@@ -257,7 +340,12 @@
           "PurchasePrice": 5000,
           "SellPrice": 5000,
           "ShopTexture": "Mods/StardewZoo/GiraffeShop",
-          "ShopSourceRect": { "X": 0, "Y": 0, "Width": 32, "Height": 16 },
+          "ShopSourceRect": {
+            "X": 0,
+            "Y": 0,
+            "Width": 32,
+            "Height": 16
+          },
           "ShopDescription": "{{i18n:animal.Giraffe.description}}",
           "ShopMissingBuildingDescription": "{{i18n:animal.missing-building}}",
           "RequiredBuilding": "StardewZoo.Zoo",
@@ -269,21 +357,413 @@
           "CanEatGoldenCrackers": false,
           "ProfessionForHappinessBoost": 3,
           "ProfessionForQualityBoost": 3,
-          "Sound": "goat",
+          "Sound": "StardewZoo_Giraffe",
           "Texture": "Mods/StardewZoo/Giraffe",
           "BabyTexture": "Mods/StardewZoo/BabyGiraffe",
           "UseFlippedRightForLeft": true,
+          "UseDoubleUniqueAnimationFrames": false,
           "SpriteWidth": 32,
           "SpriteHeight": 32,
           "SleepFrame": 12,
-          "Shadow": { "Visible": false },
           "GrassEatAmount": 4,
           "HappinessDrain": 6,
-          "UpDownPetHitboxTileSize": "1, 1.75",
+          "ShowInSummitCredits": false,
+          "Shadow": {
+            "Visible": false
+          },
+          "UpDownPetHitboxTileSize": "1.5, 1.75",
           "LeftRightPetHitboxTileSize": "1.75, 1.25",
           "BabyUpDownPetHitboxTileSize": "1, 1.75",
-          "BabyLeftRightPetHitboxTileSize": "1.75, 1",
-          "ShowInSummitCredits": false
+          "BabyLeftRightPetHitboxTileSize": "1.75, 1"
+        },
+        "StardewZoo.Monkey": {
+          "DisplayName": "{{i18n:animal.Monkey.name}}",
+          "House": "StardewZoo.Zoo",
+          "Gender": "MaleOrFemale",
+          "PurchasePrice": 2000,
+          "SellPrice": 2000,
+          "ShopTexture": "Mods/StardewZoo/MonkeyShop",
+          "ShopSourceRect": {
+            "X": 0,
+            "Y": 0,
+            "Width": 32,
+            "Height": 16
+          },
+          "ShopDescription": "{{i18n:animal.Monkey.description}}",
+          "ShopMissingBuildingDescription": "{{i18n:animal.missing-building}}",
+          "RequiredBuilding": "StardewZoo.Zoo",
+          "DaysToMature": 3,
+          "CanGetPregnant": false,
+          "HarvestType": "DropOvernight",
+          "ProduceItemIds": [],
+          "DeluxeProduceItemIds": [],
+          "CanEatGoldenCrackers": false,
+          "ProfessionForHappinessBoost": 3,
+          "ProfessionForQualityBoost": 3,
+          "Sound": "StardewZoo_Monkey",
+          "Texture": "Mods/StardewZoo/Monkey",
+          "BabyTexture": "Mods/StardewZoo/BabyMonkey",
+          "UseFlippedRightForLeft": true,
+          "UseDoubleUniqueAnimationFrames": false,
+          "SpriteWidth": 16,
+          "SpriteHeight": 16,
+          "SleepFrame": 12,
+          "GrassEatAmount": 2,
+          "HappinessDrain": 7,
+          "ShowInSummitCredits": false,
+          "EmoteOffset": {
+            "X": 0,
+            "Y": -16
+          },
+          "UpDownPetHitboxTileSize": "1, 1",
+          "LeftRightPetHitboxTileSize": "1, 1",
+          "BabyUpDownPetHitboxTileSize": "1, 1",
+          "BabyLeftRightPetHitboxTileSize": "1, 1"
+        },
+        "StardewZoo.Capybara": {
+          "DisplayName": "{{i18n:animal.Capybara.name}}",
+          "House": "StardewZoo.Zoo",
+          "Gender": "MaleOrFemale",
+          "PurchasePrice": 2500,
+          "SellPrice": 2500,
+          "ShopTexture": "Mods/StardewZoo/CapybaraShop",
+          "ShopSourceRect": {
+            "X": 0,
+            "Y": 0,
+            "Width": 32,
+            "Height": 16
+          },
+          "ShopDescription": "{{i18n:animal.Capybara.description}}",
+          "ShopMissingBuildingDescription": "{{i18n:animal.missing-building}}",
+          "RequiredBuilding": "StardewZoo.Zoo",
+          "DaysToMature": 5,
+          "CanGetPregnant": false,
+          "HarvestType": "DropOvernight",
+          "ProduceItemIds": [],
+          "DeluxeProduceItemIds": [],
+          "CanEatGoldenCrackers": false,
+          "ProfessionForHappinessBoost": 3,
+          "ProfessionForQualityBoost": 3,
+          "Sound": "StardewZoo_Capybara",
+          "Texture": "Mods/StardewZoo/Capybara",
+          "BabyTexture": "Mods/StardewZoo/BabyCapybara",
+          "UseFlippedRightForLeft": true,
+          "UseDoubleUniqueAnimationFrames": false,
+          "SpriteWidth": 32,
+          "SpriteHeight": 32,
+          "SleepFrame": 12,
+          "GrassEatAmount": 4,
+          "HappinessDrain": 6,
+          "ShowInSummitCredits": false,
+          "Shadow": {
+            "Visible": false
+          },
+          "UpDownPetHitboxTileSize": "1.5, 1.75",
+          "LeftRightPetHitboxTileSize": "1.75, 1.25",
+          "BabyUpDownPetHitboxTileSize": "1, 1.75",
+          "BabyLeftRightPetHitboxTileSize": "1.75, 1"
+        },
+        "StardewZoo.Elephant": {
+          "DisplayName": "{{i18n:animal.Elephant.name}}",
+          "House": "StardewZoo.Zoo",
+          "Gender": "MaleOrFemale",
+          "PurchasePrice": 7500,
+          "SellPrice": 7500,
+          "ShopTexture": "Mods/StardewZoo/ElephantShop",
+          "ShopSourceRect": {
+            "X": 0,
+            "Y": 0,
+            "Width": 32,
+            "Height": 16
+          },
+          "ShopDescription": "{{i18n:animal.Elephant.description}}",
+          "ShopMissingBuildingDescription": "{{i18n:animal.missing-building}}",
+          "RequiredBuilding": "StardewZoo.Zoo",
+          "DaysToMature": 5,
+          "CanGetPregnant": false,
+          "HarvestType": "DropOvernight",
+          "ProduceItemIds": [],
+          "DeluxeProduceItemIds": [],
+          "CanEatGoldenCrackers": false,
+          "ProfessionForHappinessBoost": 3,
+          "ProfessionForQualityBoost": 3,
+          "Sound": "StardewZoo_Elephant",
+          "Texture": "Mods/StardewZoo/Elephant",
+          "BabyTexture": "Mods/StardewZoo/BabyElephant",
+          "UseFlippedRightForLeft": true,
+          "UseDoubleUniqueAnimationFrames": false,
+          "SpriteWidth": 32,
+          "SpriteHeight": 32,
+          "SleepFrame": 12,
+          "GrassEatAmount": 4,
+          "HappinessDrain": 6,
+          "ShowInSummitCredits": false,
+          "Shadow": {
+            "Visible": false
+          },
+          "UpDownPetHitboxTileSize": "1.5, 1.75",
+          "LeftRightPetHitboxTileSize": "1.75, 1.25",
+          "BabyUpDownPetHitboxTileSize": "1, 1.75",
+          "BabyLeftRightPetHitboxTileSize": "1.75, 1"
+        },
+        "StardewZoo.Dinosaur": {
+          "DisplayName": "{{i18n:animal.Dinosaur.name}}",
+          "House": "StardewZoo.Zoo",
+          "Gender": "MaleOrFemale",
+          "PurchasePrice": 10000,
+          "SellPrice": 10000,
+          "ShopTexture": "Mods/StardewZoo/DinosaurShop",
+          "ShopSourceRect": {
+            "X": 0,
+            "Y": 0,
+            "Width": 32,
+            "Height": 16
+          },
+          "ShopDescription": "{{i18n:animal.Dinosaur.description}}",
+          "ShopMissingBuildingDescription": "{{i18n:animal.missing-building}}",
+          "RequiredBuilding": "StardewZoo.Zoo",
+          "DaysToMature": 5,
+          "CanGetPregnant": false,
+          "HarvestType": "DropOvernight",
+          "ProduceItemIds": [],
+          "DeluxeProduceItemIds": [],
+          "CanEatGoldenCrackers": false,
+          "ProfessionForHappinessBoost": 3,
+          "ProfessionForQualityBoost": 3,
+          "Sound": "StardewZoo_Dinosaur",
+          "Texture": "Mods/StardewZoo/Dinosaur",
+          "BabyTexture": "Mods/StardewZoo/BabyDinosaur",
+          "UseFlippedRightForLeft": true,
+          "UseDoubleUniqueAnimationFrames": false,
+          "SpriteWidth": 32,
+          "SpriteHeight": 32,
+          "SleepFrame": 12,
+          "GrassEatAmount": 4,
+          "HappinessDrain": 6,
+          "ShowInSummitCredits": false,
+          "Shadow": {
+            "Visible": false
+          },
+          "UpDownPetHitboxTileSize": "1.5, 1.75",
+          "LeftRightPetHitboxTileSize": "1.75, 1.25",
+          "BabyUpDownPetHitboxTileSize": "1, 1.75",
+          "BabyLeftRightPetHitboxTileSize": "1.75, 1"
+        },
+        "StardewZoo.Gorilla": {
+          "DisplayName": "{{i18n:animal.Gorilla.name}}",
+          "House": "StardewZoo.Zoo",
+          "Gender": "MaleOrFemale",
+          "PurchasePrice": 6000,
+          "SellPrice": 6000,
+          "ShopTexture": "Mods/StardewZoo/GorillaShop",
+          "ShopSourceRect": {
+            "X": 0,
+            "Y": 0,
+            "Width": 32,
+            "Height": 16
+          },
+          "ShopDescription": "{{i18n:animal.Gorilla.description}}",
+          "ShopMissingBuildingDescription": "{{i18n:animal.missing-building}}",
+          "RequiredBuilding": "StardewZoo.Zoo",
+          "DaysToMature": 5,
+          "CanGetPregnant": false,
+          "HarvestType": "DropOvernight",
+          "ProduceItemIds": [],
+          "DeluxeProduceItemIds": [],
+          "CanEatGoldenCrackers": false,
+          "ProfessionForHappinessBoost": 3,
+          "ProfessionForQualityBoost": 3,
+          "Sound": "StardewZoo_Gorilla",
+          "Texture": "Mods/StardewZoo/Gorilla",
+          "BabyTexture": "Mods/StardewZoo/BabyGorilla",
+          "UseFlippedRightForLeft": true,
+          "UseDoubleUniqueAnimationFrames": false,
+          "SpriteWidth": 32,
+          "SpriteHeight": 32,
+          "SleepFrame": 12,
+          "GrassEatAmount": 4,
+          "HappinessDrain": 6,
+          "ShowInSummitCredits": false,
+          "Shadow": {
+            "Visible": false
+          },
+          "UpDownPetHitboxTileSize": "1.5, 1.75",
+          "LeftRightPetHitboxTileSize": "1.75, 1.25",
+          "BabyUpDownPetHitboxTileSize": "1, 1.75",
+          "BabyLeftRightPetHitboxTileSize": "1.75, 1"
+        },
+        "StardewZoo.Raccoon": {
+          "DisplayName": "{{i18n:animal.Raccoon.name}}",
+          "House": "StardewZoo.Zoo",
+          "Gender": "MaleOrFemale",
+          "PurchasePrice": 1250,
+          "SellPrice": 1250,
+          "ShopTexture": "Mods/StardewZoo/RaccoonShop",
+          "ShopSourceRect": {
+            "X": 0,
+            "Y": 0,
+            "Width": 32,
+            "Height": 16
+          },
+          "ShopDescription": "{{i18n:animal.Raccoon.description}}",
+          "ShopMissingBuildingDescription": "{{i18n:animal.missing-building}}",
+          "RequiredBuilding": "StardewZoo.Zoo",
+          "DaysToMature": 3,
+          "CanGetPregnant": false,
+          "HarvestType": "DropOvernight",
+          "ProduceItemIds": [],
+          "DeluxeProduceItemIds": [],
+          "CanEatGoldenCrackers": false,
+          "ProfessionForHappinessBoost": 3,
+          "ProfessionForQualityBoost": 3,
+          "Sound": "StardewZoo_Raccoon",
+          "Texture": "Mods/StardewZoo/Raccoon",
+          "BabyTexture": "Mods/StardewZoo/BabyRaccoon",
+          "UseFlippedRightForLeft": true,
+          "UseDoubleUniqueAnimationFrames": false,
+          "SpriteWidth": 16,
+          "SpriteHeight": 16,
+          "SleepFrame": 12,
+          "GrassEatAmount": 2,
+          "HappinessDrain": 7,
+          "ShowInSummitCredits": false,
+          "EmoteOffset": {
+            "X": 0,
+            "Y": -16
+          },
+          "UpDownPetHitboxTileSize": "1, 1",
+          "LeftRightPetHitboxTileSize": "1, 1",
+          "BabyUpDownPetHitboxTileSize": "1, 1",
+          "BabyLeftRightPetHitboxTileSize": "1, 1"
+        },
+        "StardewZoo.Alpaca": {
+          "DisplayName": "{{i18n:animal.Alpaca.name}}",
+          "House": "StardewZoo.Zoo",
+          "Gender": "MaleOrFemale",
+          "PurchasePrice": 2250,
+          "SellPrice": 2250,
+          "ShopTexture": "Mods/StardewZoo/AlpacaShop",
+          "ShopSourceRect": {
+            "X": 0,
+            "Y": 0,
+            "Width": 32,
+            "Height": 16
+          },
+          "ShopDescription": "{{i18n:animal.Alpaca.description}}",
+          "ShopMissingBuildingDescription": "{{i18n:animal.missing-building}}",
+          "RequiredBuilding": "StardewZoo.Zoo",
+          "DaysToMature": 5,
+          "CanGetPregnant": false,
+          "HarvestType": "DropOvernight",
+          "ProduceItemIds": [],
+          "DeluxeProduceItemIds": [],
+          "CanEatGoldenCrackers": false,
+          "ProfessionForHappinessBoost": 3,
+          "ProfessionForQualityBoost": 3,
+          "Sound": "StardewZoo_Alpaca",
+          "Texture": "Mods/StardewZoo/Alpaca",
+          "BabyTexture": "Mods/StardewZoo/BabyAlpaca",
+          "UseFlippedRightForLeft": true,
+          "UseDoubleUniqueAnimationFrames": false,
+          "SpriteWidth": 32,
+          "SpriteHeight": 32,
+          "SleepFrame": 12,
+          "GrassEatAmount": 4,
+          "HappinessDrain": 6,
+          "ShowInSummitCredits": false,
+          "Shadow": {
+            "Visible": false
+          },
+          "UpDownPetHitboxTileSize": "1.5, 1.75",
+          "LeftRightPetHitboxTileSize": "1.75, 1.25",
+          "BabyUpDownPetHitboxTileSize": "1, 1.75",
+          "BabyLeftRightPetHitboxTileSize": "1.75, 1"
+        },
+        "StardewZoo.SeaLion": {
+          "DisplayName": "{{i18n:animal.SeaLion.name}}",
+          "House": "StardewZoo.Zoo",
+          "Gender": "MaleOrFemale",
+          "PurchasePrice": 3500,
+          "SellPrice": 3500,
+          "ShopTexture": "Mods/StardewZoo/SeaLionShop",
+          "ShopSourceRect": {
+            "X": 0,
+            "Y": 0,
+            "Width": 32,
+            "Height": 16
+          },
+          "ShopDescription": "{{i18n:animal.SeaLion.description}}",
+          "ShopMissingBuildingDescription": "{{i18n:animal.missing-building}}",
+          "RequiredBuilding": "StardewZoo.Zoo",
+          "DaysToMature": 5,
+          "CanGetPregnant": false,
+          "HarvestType": "DropOvernight",
+          "ProduceItemIds": [],
+          "DeluxeProduceItemIds": [],
+          "CanEatGoldenCrackers": false,
+          "ProfessionForHappinessBoost": 3,
+          "ProfessionForQualityBoost": 3,
+          "Sound": "StardewZoo_SeaLion",
+          "Texture": "Mods/StardewZoo/SeaLion",
+          "BabyTexture": "Mods/StardewZoo/BabySeaLion",
+          "UseFlippedRightForLeft": true,
+          "UseDoubleUniqueAnimationFrames": false,
+          "SpriteWidth": 32,
+          "SpriteHeight": 32,
+          "SleepFrame": 12,
+          "GrassEatAmount": 4,
+          "HappinessDrain": 6,
+          "ShowInSummitCredits": false,
+          "Shadow": {
+            "Visible": false
+          },
+          "UpDownPetHitboxTileSize": "1.5, 1.75",
+          "LeftRightPetHitboxTileSize": "1.75, 1.25",
+          "BabyUpDownPetHitboxTileSize": "1, 1.75",
+          "BabyLeftRightPetHitboxTileSize": "1.75, 1"
+        },
+        "StardewZoo.Bear": {
+          "DisplayName": "{{i18n:animal.Bear.name}}",
+          "House": "StardewZoo.Zoo",
+          "Gender": "MaleOrFemale",
+          "PurchasePrice": 4500,
+          "SellPrice": 4500,
+          "ShopTexture": "Mods/StardewZoo/BearShop",
+          "ShopSourceRect": {
+            "X": 0,
+            "Y": 0,
+            "Width": 32,
+            "Height": 16
+          },
+          "ShopDescription": "{{i18n:animal.Bear.description}}",
+          "ShopMissingBuildingDescription": "{{i18n:animal.missing-building}}",
+          "RequiredBuilding": "StardewZoo.Zoo",
+          "DaysToMature": 5,
+          "CanGetPregnant": false,
+          "HarvestType": "DropOvernight",
+          "ProduceItemIds": [],
+          "DeluxeProduceItemIds": [],
+          "CanEatGoldenCrackers": false,
+          "ProfessionForHappinessBoost": 3,
+          "ProfessionForQualityBoost": 3,
+          "Sound": "StardewZoo_Bear",
+          "Texture": "Mods/StardewZoo/Bear",
+          "BabyTexture": "Mods/StardewZoo/BabyBear",
+          "UseFlippedRightForLeft": true,
+          "UseDoubleUniqueAnimationFrames": false,
+          "SpriteWidth": 32,
+          "SpriteHeight": 32,
+          "SleepFrame": 12,
+          "GrassEatAmount": 4,
+          "HappinessDrain": 6,
+          "ShowInSummitCredits": false,
+          "Shadow": {
+            "Visible": false
+          },
+          "UpDownPetHitboxTileSize": "1.5, 1.75",
+          "LeftRightPetHitboxTileSize": "1.75, 1.25",
+          "BabyUpDownPetHitboxTileSize": "1, 1.75",
+          "BabyLeftRightPetHitboxTileSize": "1.75, 1"
         }
       }
     }

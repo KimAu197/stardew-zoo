@@ -10,6 +10,7 @@
     <Compile Include="..\StardewZoo\ZooIds.cs" Link="Linked\ZooIds.cs" />
     <Compile Include="..\StardewZoo\ModConfig.cs" Link="Linked\ModConfig.cs" />
     <Compile Include="..\StardewZoo\ZooIncome.cs" Link="Linked\ZooIncome.cs" />
+    <Compile Include="..\StardewZoo\ZooHabitats.cs" Link="Linked\ZooHabitats.cs" />
   </ItemGroup>
 
   <ItemGroup>

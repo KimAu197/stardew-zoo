@@ -534,6 +534,602 @@ def chick_frames():
 
 
 # ---------------------------------------------------------------------------
+# Monkey (16x16)
+# ---------------------------------------------------------------------------
+
+MK_FUR, MK_FACE, MK_DARK, MK_LINE = rgb("#8a4f2a"), rgb("#e2b989"), rgb("#5c3318"), rgb("#2a160c")
+
+
+def monkey_front(phase=0, hd=0, blink=False, wave=False):
+    a, b = lifts(phase)
+    arm_y = 6 if wave else 9
+    return [
+        Part((rect(4, 14 - a, 6, 15 - a), MK_FACE), (rect(10, 14 - b, 12, 15 - b), MK_FACE), outline=MK_LINE, shade=False),
+        Part((ell(3.2, arm_y, 1.3, 2.4), MK_FUR), (ell(12.8, 9, 1.3, 2.4), MK_FUR), outline=MK_LINE),
+        Part((ell(8, 10.5, 4.2, 3.6), MK_FUR), outline=MK_LINE),
+        Part((ell(8, 6 + hd, 4.4, 3.8), MK_FUR), outline=MK_LINE),
+        Part((ell(3.5, 5.5 + hd, 1.6, 1.8), MK_FUR), (ell(12.5, 5.5 + hd, 1.6, 1.8), MK_FUR), outline=MK_LINE),
+        Part((ell(8, 6.8 + hd, 3.2, 2.8), MK_FACE),
+             *([] if blink else [(rect(6, 6 + hd, 7, 7 + hd), MK_LINE), (rect(9, 6 + hd, 10, 7 + hd), MK_LINE)]),
+             (rect(7, 8 + hd, 9, 9 + hd), MK_DARK), shade=False),
+    ]
+
+
+def monkey_side(phase=0, eat=False):
+    a, b = lifts(phase)
+    return [
+        Part((rect(6, 14 - a, 8, 15 - a), MK_FACE), (rect(9, 14 - b, 11, 15 - b), MK_FACE), outline=MK_LINE, shade=False),
+        Part((seg(4, 11, 1.5, 13.5, 1.3), MK_DARK), (ell(1.4, 13.8, 1.3, 1.1), MK_DARK), outline=MK_LINE),
+        Part((ell(8, 10.5, 4, 3.6), MK_FUR), outline=MK_LINE),
+        Part((ell(11, 6.2, 3.4, 3.2), MK_FUR), outline=MK_LINE),
+        Part((ell(4.8, 10, 1.2, 2.2), MK_FUR), shade=False),
+        Part((ell(12.2, 7, 2.2, 2), MK_FACE), (rect(11, 6, 12, 7), MK_LINE),
+             (rect(13, 7 if not eat else 6, 15, 8 if not eat else 7), MK_FACE), shade=False),
+    ]
+
+
+def monkey_back(phase=0):
+    a, b = lifts(phase)
+    return [
+        Part((ell(3.5, 5.5, 1.6, 1.8), MK_FUR), (ell(12.5, 5.5, 1.6, 1.8), MK_FUR), outline=MK_LINE),
+        Part((ell(8, 6, 4.2, 3.6), MK_FUR), outline=MK_LINE),
+        Part((ell(8, 10.5, 4.2, 3.6), MK_FUR), outline=MK_LINE),
+        Part((rect(4, 14 - a, 6, 15 - a), MK_FACE), (rect(10, 14 - b, 12, 15 - b), MK_FACE), outline=MK_LINE, shade=False),
+    ]
+
+
+def monkey_sleep():
+    return [
+        Part((ell(8, 12, 5.2, 3), MK_FUR), outline=MK_LINE),
+        Part((ell(8, 9.5, 3.6, 2.8), MK_FUR), outline=MK_LINE),
+        Part((ell(8, 10, 2.6, 2), MK_FACE), (rect(7, 10, 9, 11), MK_DARK), shade=False),
+        Part((seg(11, 12, 14, 13, 1.2), MK_DARK), outline=MK_LINE),
+    ]
+
+
+def monkey_frames():
+    return (
+        [monkey_front(p) for p in range(4)]
+        + [monkey_side(p) for p in range(4)]
+        + [monkey_back(p) for p in range(4)]
+        + [monkey_sleep(), monkey_front(wave=True), monkey_side(eat=True), monkey_back()]
+        + [monkey_front(hd=d, blink=d == 1) for d in (0, 1, 1, 0)]
+    )
+
+
+# ---------------------------------------------------------------------------
+# Raccoon (16x16)
+# ---------------------------------------------------------------------------
+
+RC_GRAY, RC_DARK, RC_WHITE, RC_LINE = rgb("#7a756e"), rgb("#2c2a28"), rgb("#efe6d8"), rgb("#1a1816")
+
+
+def raccoon_front(phase=0, hd=0, blink=False):
+    a, b = lifts(phase)
+    return [
+        Part((rect(4, 14 - a, 6, 15 - a), RC_DARK), (rect(10, 14 - b, 12, 15 - b), RC_DARK), outline=RC_LINE, shade=False),
+        Part((ell(8, 10.8, 4.4, 3.4), RC_GRAY), outline=RC_LINE),
+        Part((ell(8, 6.2 + hd, 4.2, 3.6), RC_GRAY), outline=RC_LINE),
+        Part((ell(4.2, 4.2 + hd, 1.5, 1.6), RC_GRAY), (ell(11.8, 4.2 + hd, 1.5, 1.6), RC_GRAY), outline=RC_LINE),
+        Part((ell(5.6, 6.6 + hd, 1.8, 1.6), RC_DARK), (ell(10.4, 6.6 + hd, 1.8, 1.6), RC_DARK),
+             (ell(8, 8.4 + hd, 1.6, 1.1), RC_WHITE),
+             *([] if blink else [(rect(5, 6 + hd, 6, 7 + hd), RC_WHITE), (rect(10, 6 + hd, 11, 7 + hd), RC_WHITE)]),
+             (rect(7, 8 + hd, 9, 9 + hd), RC_DARK), shade=False),
+    ]
+
+
+def raccoon_side(phase=0):
+    a, b = lifts(phase)
+    return [
+        Part((rect(6, 14 - a, 8, 15 - a), RC_DARK), (rect(9, 14 - b, 11, 15 - b), RC_DARK), outline=RC_LINE, shade=False),
+        Part((seg(4, 11, 1, 10, 1.6), RC_GRAY), (ell(1.2, 10, 1.4, 1.3), RC_DARK),
+             (ell(2.4, 10.2, 1.2, 1.1), RC_WHITE), outline=RC_LINE),
+        Part((ell(8, 10.5, 4.2, 3.3), RC_GRAY), outline=RC_LINE),
+        Part((ell(11.5, 6.4, 3.4, 3.2), RC_GRAY), outline=RC_LINE),
+        Part((ell(12.6, 6.8, 2, 1.8), RC_DARK), (rect(11, 6, 12, 7), RC_WHITE),
+             (rect(13, 7, 15, 8), RC_DARK), shade=False),
+    ]
+
+
+def raccoon_back(phase=0):
+    a, b = lifts(phase)
+    return [
+        Part((ell(4.2, 4.2, 1.5, 1.6), RC_GRAY), (ell(11.8, 4.2, 1.5, 1.6), RC_GRAY), outline=RC_LINE),
+        Part((ell(8, 6.2, 4.2, 3.6), RC_GRAY), outline=RC_LINE),
+        Part((ell(8, 10.8, 4.4, 3.4), RC_GRAY), outline=RC_LINE),
+        Part((seg(8, 13, 8, 15, 1.4), RC_DARK), (ell(8, 15, 1.2, 0.8), RC_WHITE), outline=RC_LINE),
+        Part((rect(4, 14 - a, 6, 15 - a), RC_DARK), (rect(10, 14 - b, 12, 15 - b), RC_DARK), outline=RC_LINE, shade=False),
+    ]
+
+
+def raccoon_sleep():
+    return [
+        Part((ell(8, 12.2, 5.4, 2.8), RC_GRAY), outline=RC_LINE),
+        Part((ell(5, 12.5, 2.2, 1.4), RC_DARK), (ell(3, 11.5, 1.4, 1.2), RC_WHITE), outline=RC_LINE),
+        Part((ell(11, 9.5, 3.2, 2.8), RC_GRAY), outline=RC_LINE),
+        Part((ell(11.5, 9.8, 1.8, 1.5), RC_DARK), (rect(10, 9, 12, 10), RC_DARK), shade=False),
+    ]
+
+
+def raccoon_frames():
+    return (
+        [raccoon_front(p) for p in range(4)]
+        + [raccoon_side(p) for p in range(4)]
+        + [raccoon_back(p) for p in range(4)]
+        + [raccoon_sleep(), raccoon_front(hd=1, blink=True), raccoon_side(), raccoon_back()]
+        + [raccoon_front(hd=d, blink=d == 1) for d in (0, 1, 1, 0)]
+    )
+
+
+# ---------------------------------------------------------------------------
+# Capybara (32x32)
+# ---------------------------------------------------------------------------
+
+CP_FUR, CP_BELLY, CP_SN, CP_LINE = rgb("#b07a45"), rgb("#d4a574"), rgb("#c9925c"), rgb("#4a2e16")
+
+
+def capy_front(u, phase=0, hd=0, hx=0, blink=False):
+    a, b = lifts(phase)
+    return [
+        Part((rect(9, 25 - b, 13, 30 - b), CP_FUR), (rect(19, 25 - a, 23, 30 - a), CP_FUR), outline=CP_LINE),
+        Part((ell(16, 21, 10, 7), CP_FUR), (both(ell(16, 21, 10, 7), lambda x, y: y > 22), CP_BELLY), outline=CP_LINE),
+        Part((rect(11, 24, 15, 30 - a), CP_FUR), (rect(17, 24, 21, 30 - b), CP_FUR), outline=CP_LINE),
+        Part((ell(16 + hx, 13 + hd, 8.5, 7), CP_FUR), outline=CP_LINE),
+        Part((ell(10.5 + hx, 8 + hd, 1.6, 1.4), CP_FUR), (ell(21.5 + hx, 8 + hd, 1.6, 1.4), CP_FUR), outline=CP_LINE),
+        Part((ell(16 + hx, 16 + hd, 5.5, 3.2), CP_SN),
+             *([] if blink else [(rect(12 + hx, 12 + hd, 13 + hx + u, 14 + hd), CP_LINE),
+                                 (rect(19 + hx, 12 + hd, 20 + hx + u, 14 + hd), CP_LINE)]),
+             (rect(15 + hx, 16 + hd, 17 + hx, 17 + hd + u), CP_LINE), shade=False),
+    ]
+
+
+def capy_side(u, phase=0, hd=0):
+    a, b = lifts(phase)
+    return [
+        Part((rect(8, 25 - a, 12, 29 - a), CP_FUR), (rect(18, 25 - b, 22, 29 - b), CP_FUR), outline=CP_LINE),
+        Part((ell(14, 20, 11, 6.5), CP_FUR), (both(ell(14, 20, 11, 6.5), lambda x, y: y > 22), CP_BELLY), outline=CP_LINE),
+        Part((rect(6, 24, 10, 30 - b), CP_FUR), (rect(16, 24, 20, 30 - a), CP_FUR), outline=CP_LINE),
+        Part((ell(24, 15 + hd, 6.5, 5.5), CP_FUR), outline=CP_LINE),
+        Part((ell(24, 10.5 + hd, 1.5, 1.3), CP_FUR), outline=CP_LINE),
+        Part((ell(28, 16.5 + hd, 3.4, 2.6), CP_SN), (rect(24, 13 + hd, 25 + u, 15 + hd), CP_LINE),
+             (rect(29, 16 + hd, 31, 17 + hd), CP_LINE), shade=False),
+    ]
+
+
+def capy_back(u, phase=0, hx=0):
+    a, b = lifts(phase)
+    return [
+        Part((ell(16, 20.5, 10, 7), CP_FUR), outline=CP_LINE),
+        Part((rect(11, 24, 15, 30 - a), CP_FUR), (rect(17, 24, 21, 30 - b), CP_FUR), outline=CP_LINE),
+        Part((ell(16 + hx, 12, 8, 6.5), CP_FUR), outline=CP_LINE),
+        Part((ell(10.5 + hx, 7.5, 1.6, 1.4), CP_FUR), (ell(21.5 + hx, 7.5, 1.6, 1.4), CP_FUR), outline=CP_LINE),
+    ]
+
+
+def capy_sleep(u):
+    return [
+        Part((ell(16, 24, 12, 5.5), CP_FUR), outline=CP_LINE),
+        Part((ell(16, 20, 8, 5.5), CP_FUR), outline=CP_LINE),
+        Part((ell(16, 21.5, 5, 2.6), CP_SN), (rect(12, 19, 14, 20), CP_LINE), (rect(18, 19, 20, 20), CP_LINE),
+             (rect(15, 22, 17, 23), CP_LINE), shade=False),
+    ]
+
+
+def capy_frames(u):
+    return (
+        [capy_front(u, p) for p in range(4)]
+        + [capy_side(u, p) for p in range(4)]
+        + [capy_back(u, p) for p in range(4)]
+        + [capy_sleep(u), capy_front(u, hd=1, blink=True), capy_side(u, hd=2), capy_back(u, hx=1)]
+        + [capy_front(u, hd=d) for d in (1, 2, 2, 1)]
+    )
+
+
+# ---------------------------------------------------------------------------
+# Elephant (32x32)
+# ---------------------------------------------------------------------------
+
+EL_GRAY, EL_EAR, EL_TUSK, EL_LINE = rgb("#8d8f97"), rgb("#b7a4a8"), rgb("#f3efe4"), rgb("#3c3d44")
+
+
+def elephant_front(u, phase=0, hd=0, hx=0, blink=False, trumpet=False):
+    a, b = lifts(phase)
+    trunk_end = 26 if trumpet else 29
+    return [
+        Part((rect(8, 24 - b, 12, 30 - b), EL_GRAY), (rect(20, 24 - a, 24, 30 - a), EL_GRAY), outline=EL_LINE),
+        Part((ell(16, 20, 9.5, 7), EL_GRAY), outline=EL_LINE),
+        Part((rect(10, 23, 14, 30 - a), EL_GRAY), (rect(18, 23, 22, 30 - b), EL_GRAY), outline=EL_LINE),
+        Part((ell(6 + hx, 14 + hd, 4.5, 6), EL_EAR), (ell(26 + hx, 14 + hd, 4.5, 6), EL_EAR), outline=EL_LINE),
+        Part((ell(16 + hx, 13 + hd, 6.5, 6), EL_GRAY), outline=EL_LINE),
+        Part((rect(15 + hx, 17 + hd, 17 + hx, trunk_end), EL_GRAY), (ell(16 + hx, trunk_end, 1.8, 1.6), EL_GRAY), outline=EL_LINE),
+        Part((rect(12 + hx, 20 + hd, 14 + hx, 23 + hd), EL_TUSK), (rect(18 + hx, 20 + hd, 20 + hx, 23 + hd), EL_TUSK), outline=EL_LINE, shade=False),
+        Part(*([] if blink else [(rect(12 + hx, 11 + hd, 13 + hx + u, 13 + hd), EL_LINE),
+                                 (rect(19 + hx, 11 + hd, 20 + hx + u, 13 + hd), EL_LINE)]), shade=False),
+    ]
+
+
+def elephant_side(u, phase=0, hd=0):
+    a, b = lifts(phase)
+    return [
+        Part((rect(8, 24 - a, 12, 29 - a), EL_GRAY), (rect(18, 24 - b, 22, 29 - b), EL_GRAY), outline=EL_LINE),
+        Part((ell(4, 18, 2, 2.2), EL_GRAY), outline=EL_LINE),
+        Part((ell(13, 19, 10, 6.5), EL_GRAY), outline=EL_LINE),
+        Part((rect(6, 23, 10, 30 - b), EL_GRAY), (rect(16, 23, 20, 30 - a), EL_GRAY), outline=EL_LINE),
+        Part((ell(22, 14 + hd, 4, 6), EL_EAR), outline=EL_LINE),
+        Part((ell(24.5, 14 + hd, 5.5, 5), EL_GRAY), outline=EL_LINE),
+        Part((seg(27, 17 + hd, 29, 26, 2.4), EL_GRAY), (ell(29, 27, 1.8, 1.6), EL_GRAY), outline=EL_LINE),
+        Part((rect(26, 18 + hd, 28, 22 + hd), EL_TUSK), outline=EL_LINE, shade=False),
+        Part((rect(24, 12 + hd, 25 + u, 14 + hd), EL_LINE), shade=False),
+    ]
+
+
+def elephant_back(u, phase=0, hx=0):
+    a, b = lifts(phase)
+    return [
+        Part((ell(6 + hx, 13, 4.5, 6), EL_EAR), (ell(26 + hx, 13, 4.5, 6), EL_EAR), outline=EL_LINE),
+        Part((ell(16 + hx, 12, 6, 5.5), EL_GRAY), outline=EL_LINE),
+        Part((ell(16, 20, 9.5, 7), EL_GRAY), outline=EL_LINE),
+        Part((rect(10, 23, 14, 30 - a), EL_GRAY), (rect(18, 23, 22, 30 - b), EL_GRAY), outline=EL_LINE),
+        Part((ell(16, 26, 1.6, 1.4), EL_EAR), outline=EL_LINE),
+    ]
+
+
+def elephant_sleep(u):
+    return [
+        Part((ell(16, 24, 12, 5.5), EL_GRAY), outline=EL_LINE),
+        Part((ell(8, 18, 5, 6), EL_EAR), outline=EL_LINE),
+        Part((ell(16, 19, 7, 5), EL_GRAY), outline=EL_LINE),
+        Part((seg(20, 20, 26, 24, 2.2), EL_GRAY), outline=EL_LINE),
+        Part((rect(12, 17, 14, 18), EL_LINE), (rect(16, 17, 18, 18), EL_LINE), shade=False),
+    ]
+
+
+def elephant_frames(u):
+    return (
+        [elephant_front(u, p) for p in range(4)]
+        + [elephant_side(u, p) for p in range(4)]
+        + [elephant_back(u, p) for p in range(4)]
+        + [elephant_sleep(u), elephant_front(u, trumpet=True), elephant_side(u, hd=2), elephant_back(u, hx=1)]
+        + [elephant_front(u, hd=d, blink=d == 2) for d in (1, 2, 2, 1)]
+    )
+
+
+# ---------------------------------------------------------------------------
+# Dinosaur (32x32) — T. rex silhouette
+# ---------------------------------------------------------------------------
+
+DN_BODY, DN_BELLY, DN_DARK, DN_LINE = rgb("#3f8f4a"), rgb("#c5d96a"), rgb("#24582c"), rgb("#143318")
+
+
+def dino_front(u, phase=0, hd=0, hx=0, blink=False, roar=False):
+    a, b = lifts(phase)
+    mouth = 4.2 if roar else 2.8
+    return [
+        Part((rect(10, 24 - b, 13, 30 - b), DN_DARK), (rect(19, 24 - a, 22, 30 - a), DN_DARK), outline=DN_LINE),
+        Part((ell(16, 23, 6.5, 5.5), DN_BODY), (both(ell(16, 23, 6.5, 5.5), lambda x, y: y > 24), DN_BELLY), outline=DN_LINE),
+        Part((rect(12, 24, 15, 30 - a), DN_BODY), (rect(17, 24, 20, 30 - b), DN_BODY), outline=DN_LINE),
+        Part((rect(12, 17, 13.5, 21), DN_BODY), (rect(18.5, 17, 20, 21), DN_BODY), outline=DN_LINE),
+        Part((ell(16 + hx, 9 + hd, 7.5, 6.5), DN_BODY), outline=DN_LINE),
+        Part((ell(16 + hx, 12 + hd, 5.2, mouth), DN_BELLY),
+             *([] if blink else [(rect(12 + hx, 7 + hd, 13 + hx + u, 9 + hd), DN_LINE),
+                                 (rect(19 + hx, 7 + hd, 20 + hx + u, 9 + hd), DN_LINE)]),
+             (rect(15 + hx, 11 + hd, 17 + hx, 12 + hd + u), DN_DARK), shade=False),
+    ]
+
+
+def dino_side(u, phase=0, hd=0):
+    a, b = lifts(phase)
+    return [
+        Part((rect(10, 24 - a, 13, 29 - a), DN_DARK), (rect(16, 24 - b, 19, 29 - b), DN_DARK), outline=DN_LINE),
+        Part((seg(6, 20, 2, 14, 2.4), DN_BODY), (ell(2, 13, 2, 2.2), DN_BODY), outline=DN_LINE),
+        Part((ell(13, 20, 8.5, 6), DN_BODY), (both(ell(13, 20, 8.5, 6), lambda x, y: y > 22), DN_BELLY), outline=DN_LINE),
+        Part((rect(8, 23, 11, 30 - b), DN_BODY), (rect(15, 23, 18, 30 - a), DN_BODY), outline=DN_LINE),
+        Part((rect(18, 16, 21, 20), DN_BODY), outline=DN_LINE),
+        Part((ell(25, 12 + hd, 6, 5), DN_BODY), outline=DN_LINE),
+        Part((ell(28.5, 13.5 + hd, 3.2, 2.4), DN_BELLY), (rect(23, 10 + hd, 24 + u, 12 + hd), DN_LINE),
+             (rect(29, 13 + hd, 31, 14 + hd), DN_DARK), shade=False),
+    ]
+
+
+def dino_back(u, phase=0, hx=0):
+    a, b = lifts(phase)
+    return [
+        Part((ell(16 + hx, 11, 6, 5.5), DN_BODY), outline=DN_LINE),
+        Part((ell(16, 21, 7.5, 6.5), DN_BODY), outline=DN_LINE),
+        Part((rect(12, 24, 15, 30 - a), DN_BODY), (rect(17, 24, 20, 30 - b), DN_BODY), outline=DN_LINE),
+        Part((seg(16, 24, 16, 29, 2), DN_BODY), (ell(16, 29.5, 1.6, 1.4), DN_DARK), outline=DN_LINE),
+    ]
+
+
+def dino_sleep(u):
+    return [
+        Part((ell(14, 24.5, 11, 5), DN_BODY), outline=DN_LINE),
+        Part((seg(22, 23, 29, 20, 2.2), DN_BODY), outline=DN_LINE),
+        Part((ell(10, 19, 6, 5), DN_BODY), outline=DN_LINE),
+        Part((ell(8, 20, 3, 2), DN_BELLY), (rect(7, 17, 9, 18), DN_LINE), shade=False),
+    ]
+
+
+def dino_frames(u):
+    return (
+        [dino_front(u, p) for p in range(4)]
+        + [dino_side(u, p) for p in range(4)]
+        + [dino_back(u, p) for p in range(4)]
+        + [dino_sleep(u), dino_front(u, roar=True), dino_side(u, hd=2), dino_back(u, hx=1)]
+        + [dino_front(u, hd=d, blink=d == 2) for d in (1, 2, 2, 1)]
+    )
+
+
+# ---------------------------------------------------------------------------
+# Gorilla (32x32)
+# ---------------------------------------------------------------------------
+
+GO_FUR, GO_SKIN, GO_LINE = rgb("#3a3a42"), rgb("#c48a62"), rgb("#16161a")
+
+
+def gorilla_front(u, phase=0, hd=0, hx=0, blink=False, pound=False):
+    a, b = lifts(phase)
+    arm_y = 18 if pound else 22
+    return [
+        Part((rect(8, 24, 12, 30 - b), GO_SKIN), (rect(20, 24, 24, 30 - a), GO_SKIN), outline=GO_LINE),
+        Part((ell(16, 20, 9, 7), GO_FUR), outline=GO_LINE),
+        Part((rect(10, 23, 14, 30 - a), GO_FUR), (rect(18, 23, 22, 30 - b), GO_FUR), outline=GO_LINE),
+        Part((ell(7, arm_y, 3.2, 5), GO_FUR), (ell(25, 22, 3.2, 5), GO_FUR), outline=GO_LINE),
+        Part((ell(16 + hx, 11 + hd, 8, 7.5), GO_FUR), outline=GO_LINE),
+        Part((ell(16 + hx, 13.5 + hd, 5.5, 4.8), GO_SKIN),
+             *([] if blink else [(rect(12 + hx, 12 + hd, 13 + hx + u, 14 + hd), GO_LINE),
+                                 (rect(19 + hx, 12 + hd, 20 + hx + u, 14 + hd), GO_LINE)]),
+             (rect(15 + hx, 16 + hd, 17 + hx, 17 + hd + u), GO_LINE), shade=False),
+    ]
+
+
+def gorilla_side(u, phase=0, hd=0):
+    a, b = lifts(phase)
+    return [
+        Part((rect(8, 24 - a, 12, 29 - a), GO_SKIN), (rect(18, 24 - b, 22, 29 - b), GO_SKIN), outline=GO_LINE),
+        Part((ell(14, 19.5, 9.5, 6.5), GO_FUR), outline=GO_LINE),
+        Part((rect(7, 23, 11, 30 - b), GO_FUR), (rect(16, 23, 20, 30 - a), GO_FUR), outline=GO_LINE),
+        Part((ell(8, 20, 3, 4.5), GO_FUR), outline=GO_LINE),
+        Part((ell(24, 13 + hd, 6.5, 6), GO_FUR), outline=GO_LINE),
+        Part((ell(26.5, 15 + hd, 4, 3.6), GO_SKIN), (rect(24, 12 + hd, 25 + u, 14 + hd), GO_LINE),
+             (rect(28, 16 + hd, 30, 17 + hd), GO_LINE), shade=False),
+    ]
+
+
+def gorilla_back(u, phase=0, hx=0):
+    a, b = lifts(phase)
+    return [
+        Part((ell(16 + hx, 11, 8, 7), GO_FUR), outline=GO_LINE),
+        Part((ell(16, 20, 9, 7.5), GO_FUR), outline=GO_LINE),
+        Part((ell(7, 22, 3.2, 5), GO_FUR), (ell(25, 22, 3.2, 5), GO_FUR), outline=GO_LINE),
+        Part((rect(10, 23, 14, 30 - a), GO_FUR), (rect(18, 23, 22, 30 - b), GO_FUR), outline=GO_LINE),
+    ]
+
+
+def gorilla_sleep(u):
+    return [
+        Part((ell(16, 24, 12, 5.5), GO_FUR), outline=GO_LINE),
+        Part((ell(16, 19.5, 8, 6), GO_FUR), outline=GO_LINE),
+        Part((ell(16, 21, 5, 3.5), GO_SKIN), (rect(12, 19, 14, 20), GO_LINE), (rect(18, 19, 20, 20), GO_LINE), shade=False),
+    ]
+
+
+def gorilla_frames(u):
+    return (
+        [gorilla_front(u, p) for p in range(4)]
+        + [gorilla_side(u, p) for p in range(4)]
+        + [gorilla_back(u, p) for p in range(4)]
+        + [gorilla_sleep(u), gorilla_front(u, pound=True), gorilla_side(u, hd=2), gorilla_back(u, hx=1)]
+        + [gorilla_front(u, hd=d, blink=d == 2) for d in (1, 2, 2, 1)]
+    )
+
+
+# ---------------------------------------------------------------------------
+# Alpaca (32x32)
+# ---------------------------------------------------------------------------
+
+AL_WOOL, AL_FACE, AL_DARK, AL_LINE = rgb("#f0e6d2"), rgb("#e2c8a0"), rgb("#5a3a22"), rgb("#6b5340")
+
+
+def alpaca_front(u, phase=0, hd=0, hx=0, blink=False, ear=0):
+    a, b = lifts(phase)
+    hy = 8 + hd
+    return [
+        Part((rect(10, 23 - b, 13, 30 - b), AL_FACE), (rect(19, 23 - a, 22, 30 - a), AL_FACE), outline=AL_LINE),
+        Part((ell(16, 21, 8, 6), AL_WOOL), outline=AL_LINE),
+        Part((rect(12, 22, 15, 30 - a), AL_WOOL), (rect(17, 22, 20, 30 - b), AL_WOOL), outline=AL_LINE),
+        Part((rect(14, hy + 2, 18, 18), AL_WOOL), outline=AL_LINE),
+        Part((ell(12 + hx, hy - 3 - ear, 1.6, 2.4), AL_WOOL), (ell(20 + hx, hy - 3 - ear, 1.6, 2.4), AL_WOOL), outline=AL_LINE),
+        Part((ell(16 + hx, hy, 5, 4.2), AL_WOOL), outline=AL_LINE),
+        Part((ell(16 + hx, hy + 2.4, 3.2, 2.4), AL_FACE),
+             *([] if blink else [(rect(13 + hx, hy, 14 + hx + u, hy + u), AL_DARK),
+                                 (rect(18 + hx, hy, 19 + hx + u, hy + u), AL_DARK)]),
+             (rect(15 + hx, hy + 3, 17 + hx, hy + 3 + u), AL_DARK), shade=False),
+    ]
+
+
+def alpaca_side(u, phase=0, hd=0):
+    a, b = lifts(phase)
+    hy = 8 + hd
+    return [
+        Part((rect(8, 23 - a, 11, 29 - a), AL_FACE), (rect(18, 23 - b, 21, 29 - b), AL_FACE), outline=AL_LINE),
+        Part((seg(5, 18, 3, 24, 1.3), AL_WOOL), outline=AL_LINE),
+        Part((ell(13, 20, 9, 5.5), AL_WOOL), outline=AL_LINE),
+        Part((rect(7, 22, 10, 30 - b), AL_WOOL), (rect(16, 22, 19, 30 - a), AL_WOOL), outline=AL_LINE),
+        Part((seg(18, 17, 23, hy + 1, 3.6), AL_WOOL), outline=AL_LINE),
+        Part((ell(22, hy - 3, 1.5, 2.2), AL_WOOL), outline=AL_LINE),
+        Part((ell(25.5, hy, 4.6, 3.4), AL_WOOL), outline=AL_LINE),
+        Part((ell(28.5, hy + 1.6, 2.4, 1.8), AL_FACE), (rect(24, hy, 25 + u, hy + u), AL_DARK), shade=False),
+    ]
+
+
+def alpaca_back(u, phase=0, hx=0):
+    a, b = lifts(phase)
+    return [
+        Part((ell(12 + hx, 4, 1.6, 2.4), AL_WOOL), (ell(20 + hx, 4, 1.6, 2.4), AL_WOOL), outline=AL_LINE),
+        Part((ell(16 + hx, 7, 5, 4), AL_WOOL), outline=AL_LINE),
+        Part((rect(14, 10, 18, 18), AL_WOOL), outline=AL_LINE),
+        Part((ell(16, 21, 8, 6), AL_WOOL), outline=AL_LINE),
+        Part((rect(12, 23, 15, 30 - a), AL_WOOL), (rect(17, 23, 20, 30 - b), AL_WOOL), outline=AL_LINE),
+        Part((seg(16, 24, 16, 28, 1.2), AL_WOOL), outline=AL_LINE),
+    ]
+
+
+def alpaca_sleep(u):
+    hy = 12
+    return [
+        Part((ell(16, 25, 11, 4.5), AL_WOOL), outline=AL_LINE),
+        Part((rect(14, hy + 1, 18, 23), AL_WOOL), outline=AL_LINE),
+        Part((ell(12, hy - 3, 1.6, 2.2), AL_WOOL), (ell(20, hy - 3, 1.6, 2.2), AL_WOOL), outline=AL_LINE),
+        Part((ell(16, hy, 5, 4.2), AL_WOOL), outline=AL_LINE),
+        Part((ell(16, hy + 2.4, 3.2, 2.4), AL_FACE), (rect(13, hy, 15, hy + u), AL_DARK),
+             (rect(17, hy, 19, hy + u), AL_DARK), shade=False),
+    ]
+
+
+def alpaca_frames(u):
+    return (
+        [alpaca_front(u, p) for p in range(4)]
+        + [alpaca_side(u, p) for p in range(4)]
+        + [alpaca_back(u, p) for p in range(4)]
+        + [alpaca_sleep(u), alpaca_front(u, ear=2, blink=True), alpaca_side(u, hd=3), alpaca_back(u, hx=1)]
+        + [alpaca_front(u, hd=d) for d in (2, 4, 4, 2)]
+    )
+
+
+# ---------------------------------------------------------------------------
+# Sea lion (32x32)
+# ---------------------------------------------------------------------------
+
+SL_BODY, SL_BELLY, SL_LINE = rgb("#6b4a36"), rgb("#c4a07a"), rgb("#2a1810")
+
+
+def sealion_front(u, phase=0, hd=0, hx=0, blink=False, bark=False):
+    a, b = lifts(phase)
+    fy = 18 - a
+    snout = 4.2 if bark else 3.4
+    return [
+        Part((ell(6, fy, 4.5, 3.2), SL_BODY), (ell(26, 18 - b, 4.5, 3.2), SL_BODY), outline=SL_LINE),
+        Part((ell(16, 21, 8, 6.5), SL_BODY), (both(ell(16, 21, 8, 6.5), lambda x, y: y > 23), SL_BELLY), outline=SL_LINE),
+        Part((ell(16 + hx, 12 + hd, 5.5, 5), SL_BODY), outline=SL_LINE),
+        Part((ell(16 + hx, 16 + hd, snout, 2.6), SL_BELLY),
+             (rect(11 + hx, 16 + hd, 12 + hx, 16 + hd + u), SL_LINE),
+             (rect(20 + hx, 16 + hd, 21 + hx, 16 + hd + u), SL_LINE),
+             *([] if blink else [(rect(13 + hx, 10 + hd, 14 + hx + u, 12 + hd), SL_LINE),
+                                 (rect(18 + hx, 10 + hd, 19 + hx + u, 12 + hd), SL_LINE)]),
+             (rect(15 + hx, 15 + hd, 17 + hx, 16 + hd), SL_LINE), shade=False),
+        Part((ell(11, 27, 3.5, 2), SL_BODY), (ell(21, 27, 3.5, 2), SL_BODY), outline=SL_LINE),
+    ]
+
+
+def sealion_side(u, phase=0, hd=0):
+    a, b = lifts(phase)
+    return [
+        Part((ell(6, 20 - a, 3, 4.5), SL_BODY), (ell(16, 22 - b, 4, 3.5), SL_BODY), outline=SL_LINE),
+        Part((ell(14, 19, 10, 6), SL_BODY), (both(ell(14, 19, 10, 6), lambda x, y: y > 21), SL_BELLY), outline=SL_LINE),
+        Part((ell(4, 18, 2.4, 2), SL_BODY), outline=SL_LINE),
+        Part((ell(25, 14 + hd, 6, 5), SL_BODY), outline=SL_LINE),
+        Part((ell(28.5, 15.5 + hd, 3, 2.2), SL_BELLY), (rect(24, 12 + hd, 25 + u, 14 + hd), SL_LINE),
+             (rect(29, 15 + hd, 31, 16 + hd), SL_LINE), shade=False),
+        Part((rect(20, 24, 26, 27), SL_BODY), outline=SL_LINE),
+    ]
+
+
+def sealion_back(u, phase=0, hx=0):
+    a, b = lifts(phase)
+    return [
+        Part((ell(16 + hx, 11, 6, 5.5), SL_BODY), outline=SL_LINE),
+        Part((ell(16, 20, 8.5, 7), SL_BODY), outline=SL_LINE),
+        Part((ell(8, 18, 3.5, 5), SL_BODY), (ell(24, 18, 3.5, 5), SL_BODY), outline=SL_LINE),
+        Part((ell(16, 27, 3, 2), SL_BODY), outline=SL_LINE),
+    ]
+
+
+def sealion_sleep(u):
+    return [
+        Part((ell(16, 23, 12, 5.5), SL_BODY), outline=SL_LINE),
+        Part((ell(16, 20, 7, 5), SL_BODY), outline=SL_LINE),
+        Part((ell(16, 21, 4, 2.4), SL_BELLY), (rect(12, 18, 14, 19), SL_LINE), (rect(18, 18, 20, 19), SL_LINE), shade=False),
+    ]
+
+
+def sealion_frames(u):
+    return (
+        [sealion_front(u, p) for p in range(4)]
+        + [sealion_side(u, p) for p in range(4)]
+        + [sealion_back(u, p) for p in range(4)]
+        + [sealion_sleep(u), sealion_front(u, bark=True), sealion_side(u, hd=2), sealion_back(u, hx=1)]
+        + [sealion_front(u, hd=d, blink=d == 2) for d in (1, 2, 2, 1)]
+    )
+
+
+# ---------------------------------------------------------------------------
+# Bear (32x32)
+# ---------------------------------------------------------------------------
+
+BR_FUR, BR_SN, BR_LINE = rgb("#6a3e24"), rgb("#c9a07a"), rgb("#2c160c")
+
+
+def bear_front(u, phase=0, hd=0, hx=0, blink=False):
+    a, b = lifts(phase)
+    return [
+        Part((rect(8, 24 - b, 12, 30 - b), BR_FUR), (rect(20, 24 - a, 24, 30 - a), BR_FUR), outline=BR_LINE),
+        Part((ell(16, 21, 9.5, 7), BR_FUR), outline=BR_LINE),
+        Part((rect(10, 23, 14, 30 - a), BR_FUR), (rect(18, 23, 22, 30 - b), BR_FUR), outline=BR_LINE),
+        Part((ell(10 + hx, 7 + hd, 2.4, 2.4), BR_FUR), (ell(22 + hx, 7 + hd, 2.4, 2.4), BR_FUR), outline=BR_LINE),
+        Part((ell(16 + hx, 13 + hd, 7.5, 6.5), BR_FUR), outline=BR_LINE),
+        Part((ell(16 + hx, 16 + hd, 3.8, 2.8), BR_SN),
+             *([] if blink else [(rect(12 + hx, 12 + hd, 13 + hx + u, 14 + hd), BR_LINE),
+                                 (rect(19 + hx, 12 + hd, 20 + hx + u, 14 + hd), BR_LINE)]),
+             (rect(15 + hx, 16 + hd, 17 + hx, 17 + hd + u), BR_LINE), shade=False),
+    ]
+
+
+def bear_side(u, phase=0, hd=0):
+    a, b = lifts(phase)
+    return [
+        Part((rect(8, 24 - a, 12, 29 - a), BR_FUR), (rect(18, 24 - b, 22, 29 - b), BR_FUR), outline=BR_LINE),
+        Part((ell(5, 18, 2, 1.8), BR_FUR), outline=BR_LINE),
+        Part((ell(14, 19.5, 10, 6.5), BR_FUR), outline=BR_LINE),
+        Part((rect(7, 23, 11, 30 - b), BR_FUR), (rect(16, 23, 20, 30 - a), BR_FUR), outline=BR_LINE),
+        Part((ell(23, 9 + hd, 2.2, 2.2), BR_FUR), outline=BR_LINE),
+        Part((ell(25, 14 + hd, 6, 5.5), BR_FUR), outline=BR_LINE),
+        Part((ell(28.5, 16 + hd, 3.2, 2.4), BR_SN), (rect(24, 12 + hd, 25 + u, 14 + hd), BR_LINE),
+             (rect(29, 16 + hd, 31, 17 + hd), BR_LINE), shade=False),
+    ]
+
+
+def bear_back(u, phase=0, hx=0):
+    a, b = lifts(phase)
+    return [
+        Part((ell(10 + hx, 7, 2.4, 2.4), BR_FUR), (ell(22 + hx, 7, 2.4, 2.4), BR_FUR), outline=BR_LINE),
+        Part((ell(16 + hx, 13, 7.5, 6.5), BR_FUR), outline=BR_LINE),
+        Part((ell(16, 21, 9.5, 7), BR_FUR), outline=BR_LINE),
+        Part((rect(10, 23, 14, 30 - a), BR_FUR), (rect(18, 23, 22, 30 - b), BR_FUR), outline=BR_LINE),
+        Part((ell(16, 26, 1.8, 1.5), BR_FUR), outline=BR_LINE),
+    ]
+
+
+def bear_sleep(u):
+    return [
+        Part((ell(16, 24, 12, 5.5), BR_FUR), outline=BR_LINE),
+        Part((ell(10, 16, 2.4, 2.4), BR_FUR), (ell(22, 16, 2.4, 2.4), BR_FUR), outline=BR_LINE),
+        Part((ell(16, 19, 7.5, 6), BR_FUR), outline=BR_LINE),
+        Part((ell(16, 21, 3.8, 2.6), BR_SN), (rect(12, 18, 14, 19), BR_LINE), (rect(18, 18, 20, 19), BR_LINE), shade=False),
+    ]
+
+
+def bear_frames(u):
+    return (
+        [bear_front(u, p) for p in range(4)]
+        + [bear_side(u, p) for p in range(4)]
+        + [bear_back(u, p) for p in range(4)]
+        + [bear_sleep(u), bear_front(u, hd=1, blink=True), bear_side(u, hd=2), bear_back(u, hx=1)]
+        + [bear_front(u, hd=d) for d in (1, 2, 2, 1)]
+    )
+
+
+# ---------------------------------------------------------------------------
 # Sheets
 # ---------------------------------------------------------------------------
 
@@ -551,21 +1147,52 @@ def shop_icon(frame, crop):
     return icon
 
 
+PREVIEW_DIR = Path(__file__).resolve().parent / "previews"
+
+
+def write_preview(name, frame, scale=8):
+    PREVIEW_DIR.mkdir(parents=True, exist_ok=True)
+    big = frame.resize((frame.width * scale, frame.height * scale), Image.NEAREST)
+    big.save(PREVIEW_DIR / f"{name}.png")
+
+
 def main():
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     big = {
         "Panda": (panda_frames, (0, 2, 32, 18)),
         "Lion": (lion_frames, (0, 2, 32, 18)),
         "Giraffe": (giraffe_frames, (0, 0, 32, 16)),
+        "Capybara": (capy_frames, (0, 4, 32, 20)),
+        "Elephant": (elephant_frames, (0, 2, 32, 18)),
+        "Dinosaur": (dino_frames, (0, 2, 32, 18)),
+        "Gorilla": (gorilla_frames, (0, 2, 32, 18)),
+        "Alpaca": (alpaca_frames, (0, 0, 32, 16)),
+        "SeaLion": (sealion_frames, (0, 4, 32, 20)),
+        "Bear": (bear_frames, (0, 2, 32, 18)),
     }
     for name, (frames, crop) in big.items():
-        build_sheet(frames(1), 32).save(OUT_DIR / f"{name}.png")
+        adult = build_sheet(frames(1), 32)
+        adult.save(OUT_DIR / f"{name}.png")
         build_sheet(frames(1 / BABY_SCALE), 32, BABY_SCALE).save(OUT_DIR / f"Baby{name}.png")
-        shop_icon(render(frames(1)[0], 32), crop).save(OUT_DIR / f"{name}Shop.png")
+        front = render(frames(1)[0], 32)
+        shop_icon(front, crop).save(OUT_DIR / f"{name}Shop.png")
+        write_preview(name, front)
 
-    build_sheet(penguin_frames(), 16).save(OUT_DIR / "Penguin.png")
-    build_sheet(chick_frames(), 16).save(OUT_DIR / "BabyPenguin.png")
-    shop_icon(render(penguin_frames()[0], 16), (0, 0, 16, 16)).save(OUT_DIR / "PenguinShop.png")
+    small = {
+        "Penguin": (penguin_frames, chick_frames),
+        "Monkey": (monkey_frames, None),
+        "Raccoon": (raccoon_frames, None),
+    }
+    for name, (adult_frames, baby_frames) in small.items():
+        adult_sheet = build_sheet(adult_frames(), 16)
+        adult_sheet.save(OUT_DIR / f"{name}.png")
+        if baby_frames is None:
+            build_sheet(adult_frames(), 16, BABY_SCALE).save(OUT_DIR / f"Baby{name}.png")
+        else:
+            build_sheet(baby_frames(), 16).save(OUT_DIR / f"Baby{name}.png")
+        front = render(adult_frames()[0], 16)
+        shop_icon(front, (0, 0, 16, 16)).save(OUT_DIR / f"{name}Shop.png")
+        write_preview(name, front)
 
     print(f"Wrote animal sprites to {OUT_DIR}")
 

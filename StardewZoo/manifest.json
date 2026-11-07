@@ -2,7 +2,7 @@
   "Name": "Stardew Zoo",
   "Author": "Kenzie",
   "Version": "1.0.0",
-  "Description": "Pays daily ticket income for the animals in your zoo.",
+  "Description": "Zoo operations: tickets, visitors, reviews, habitats, and custom animal sounds.",
   "UniqueID": "Kenzie.StardewZoo",
   "EntryDll": "StardewZoo.dll",
   "MinimumApiVersion": "4.0.0",
