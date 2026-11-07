@@ -14,6 +14,7 @@
     <Compile Include="..\StardewZoo\WavFile.cs" Link="Linked\WavFile.cs" />
     <Compile Include="..\StardewZoo\CaptureTools.cs" Link="Linked\CaptureTools.cs" />
     <Compile Include="..\StardewZoo\ProximityCalls.cs" Link="Linked\ProximityCalls.cs" />
+    <Compile Include="..\StardewZoo\AnimalBrain.cs" Link="Linked\AnimalBrain.cs" />
     <Compile Include="..\StardewZoo\VisitorChat.cs" Link="Linked\VisitorChat.cs" />
   </ItemGroup>
 

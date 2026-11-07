@@ -22,6 +22,7 @@ internal sealed class ModEntry : Mod
         this.visitors = new VisitorManager(helper, this.Monitor, () => this.config, () => this.save);
         this.recording = new RecordingManager(helper, this.Monitor);
         new AnimalCallHandler(helper, this.config);
+        new AnimalMovement(helper, this.config);
 
         helper.Events.GameLoop.GameLaunched += this.OnGameLaunched;
         helper.Events.GameLoop.SaveLoaded += this.OnSaveLoaded;

@@ -39,6 +39,12 @@ public sealed class ModConfig
     /// <summary>Minimum seconds before the same animal can call again (the player must also leave and come back).</summary>
     public double AnimalCallCooldownSeconds { get; set; } = 8;
 
+    /// <summary>Whether zoo animals use species movement (birds fly, monkeys climb, sea lions swim laps, big animals plod).</summary>
+    public bool AnimalMovementStyles { get; set; } = true;
+
+    /// <summary>Whether the dinosaur's footsteps nudge the screen slightly when it stomps near the player.</summary>
+    public bool DinosaurStompShake { get; set; } = true;
+
     /// <summary>Income / demand multiplier per zoo building ID; unknown IDs use 1.0.</summary>
     public Dictionary<string, double> Multipliers { get; set; } = new()
     {
