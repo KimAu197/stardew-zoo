@@ -11,6 +11,8 @@
     <Compile Include="..\StardewZoo\ModConfig.cs" Link="Linked\ModConfig.cs" />
     <Compile Include="..\StardewZoo\ZooIncome.cs" Link="Linked\ZooIncome.cs" />
     <Compile Include="..\StardewZoo\ZooHabitats.cs" Link="Linked\ZooHabitats.cs" />
+    <Compile Include="..\StardewZoo\WavFile.cs" Link="Linked\WavFile.cs" />
+    <Compile Include="..\StardewZoo\CaptureTools.cs" Link="Linked\CaptureTools.cs" />
   </ItemGroup>
 
   <ItemGroup>

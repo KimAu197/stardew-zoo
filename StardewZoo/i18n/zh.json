@@ -21,13 +21,19 @@
   "review.overall.ok": "{{stars}}  挺不错的小动物园，展区很可爱。",
   "review.overall.bad": "{{stars}}  有点失望，不值这一趟。",
   "record.title": "动物园录音室",
-  "record.hint": "选一只动物，然后录音、试听，或恢复默认叫声。",
+  "record.hint": "选一只动物，然后录音、试听，或恢复默认叫声。带 * 的是自定义叫声。也可以把自己的 wav 放进 sounds 文件夹，游戏会自动载入。",
   "record.button.record": "录音（2.5秒）",
+  "record.button.recording": "录音中……",
   "record.button.preview": "试听",
   "record.button.reset": "恢复默认",
+  "record.button.folder": "打开 sounds 文件夹",
   "record.saved": "已保存 {{animal}} 的新叫声。",
   "record.preview": "正在播放 {{animal}}。",
   "record.reset": "已恢复 {{animal}} 的默认叫声。",
-  "record.listening": "正在听取麦克风……",
-  "record.drop-wav": "无法录音。请把以动物英文名命名的 wav 文件放进 sounds 文件夹。"
+  "record.listening": "正在为 {{animal}} 录音 2.5 秒……现在发出叫声吧！",
+  "record.busy": "{{animal}} 还在录音中，请稍候。",
+  "record.silent": "录到的是静音，已保留原来的叫声。macOS 上请在 系统设置 > 隐私与安全性 > 麦克风 里允许“终端”（SMAPI 在终端里运行），然后重启游戏。也可以把 {{file}} 放进 sounds 文件夹。",
+  "record.drop-wav": "没有可用的录音方式。已打开 sounds 文件夹：放入名为 {{file}} 的 wav 文件即可自动载入。（可选：brew install ffmpeg）",
+  "record.invalid": "{{file}} 无法使用（{{error}}）。请保存为 16 位 PCM 格式的 wav。",
+  "record.reloaded": "已为 {{animal}} 载入新的 {{file}}。"
 }

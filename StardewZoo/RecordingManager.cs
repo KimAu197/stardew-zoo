@@ -2,19 +2,32 @@ using System.Diagnostics;
 using Microsoft.Xna.Framework.Audio;
 using StardewModdingAPI;
 using StardewValley;
+using StardewValley.TokenizableStrings;
 
 namespace StardewZoo;
 
 internal sealed class RecordingManager
 {
+    private const int PollTicks = 60;
+    private static readonly TimeSpan ToolTimeout = TimeSpan.FromSeconds(12);
+    private static readonly TimeSpan MicGrace = TimeSpan.FromSeconds(2.5);
+
     private readonly IModHelper helper;
     private readonly IMonitor monitor;
-    private FileSystemWatcher? watcher;
+    private readonly Dictionary<string, (DateTime Time, long Size)> stamps = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, bool> custom = new(StringComparer.OrdinalIgnoreCase);
+    private ZooSaveData save = new();
+    private int ticks;
+
+    private string? jobAnimal;
+    private string? jobTemp;
+    private Task<ToolOutcome>? toolJob;
     private Microphone? microphone;
     private readonly List<byte> capture = new();
     private int captureNeeded;
-    private string? capturingAnimal;
-    private DateTime ignoreWatcherUntil = DateTime.MinValue;
+    private DateTime micDeadline;
+
+    private sealed record ToolOutcome(string? Via, bool Silent, string Detail);
 
     public RecordingManager(IModHelper helper, IMonitor monitor)
     {
@@ -26,103 +39,112 @@ internal sealed class RecordingManager
 
     public string DefaultsDir => Path.Combine(this.SoundsDir, "defaults");
 
+    public bool Busy => this.jobAnimal != null;
+
+    public string? BusyAnimal => this.jobAnimal;
+
+    /// <summary>Latest result to show in the studio menu.</summary>
+    public string Status { get; private set; } = "";
+
     public void Initialize(ZooSaveData save)
     {
+        this.save = save;
+        this.stamps.Clear();
+        this.custom.Clear();
         Directory.CreateDirectory(this.SoundsDir);
-        Directory.CreateDirectory(this.DefaultsDir);
         foreach (string animal in ZooIds.AnimalTypes)
         {
             string name = ZooIds.ShortName(animal);
             string live = this.WavPath(name);
-            string baked = Path.Combine(this.DefaultsDir, name + ".wav");
+            string baked = this.DefaultPath(name);
             if (!File.Exists(live) && File.Exists(baked))
                 File.Copy(baked, live, overwrite: false);
-            this.RegisterCue(name);
+            this.Reload(name, announce: false);
         }
-
-        this.watcher = new FileSystemWatcher(this.SoundsDir, "*.wav")
-        {
-            NotifyFilter = NotifyFilters.FileName | NotifyFilters.LastWrite | NotifyFilters.Size,
-            EnableRaisingEvents = true
-        };
-        this.watcher.Changed += this.OnWavDropped;
-        this.watcher.Created += this.OnWavDropped;
+        this.Status = "";
     }
 
     public void Tick()
     {
-        if (this.microphone == null || this.capturingAnimal == null)
-            return;
+        if (this.microphone != null)
+            this.TickMicrophone();
+        else if (this.toolJob is { IsCompleted: true })
+            this.FinishToolJob();
 
-        var buffer = new byte[4096];
-        int read = this.microphone.GetData(buffer);
-        if (read > 0)
-        {
-            this.capture.AddRange(buffer.Take(read));
-            this.captureNeeded -= read;
-        }
-
-        if (this.captureNeeded > 0 && this.microphone.State == MicrophoneState.Started)
-            return;
-
-        this.FinishMicCapture();
+        if (++this.ticks % PollTicks == 0 && !this.Busy)
+            this.PollChanges();
     }
 
     public string WavPath(string shortName) => Path.Combine(this.SoundsDir, shortName + ".wav");
 
-    public bool TryPreview(string shortName)
+    public string DefaultPath(string shortName) => Path.Combine(this.DefaultsDir, shortName + ".wav");
+
+    public bool IsCustom(string shortName) => this.custom.TryGetValue(shortName, out bool value) && value;
+
+    public string DisplayName(string shortName)
     {
-        this.RegisterCue(shortName);
-        Game1.playSound(ZooIds.CueName("StardewZoo." + shortName));
-        return true;
+        if (Game1.farmAnimalData != null && Game1.farmAnimalData.TryGetValue("StardewZoo." + shortName, out var data) && !string.IsNullOrWhiteSpace(data.DisplayName))
+            return TokenParser.ParseText(data.DisplayName);
+        return shortName;
     }
 
-    public bool TryReset(string shortName, ZooSaveData save)
+    /// <summary>Pick up WAVs edited or dropped in while the game is running.</summary>
+    public void PollChanges()
     {
-        string baked = Path.Combine(this.DefaultsDir, shortName + ".wav");
+        foreach (string animal in ZooIds.AnimalTypes)
+            this.Reload(ZooIds.ShortName(animal), announce: true);
+    }
+
+    public void Preview(string shortName)
+    {
+        this.Reload(shortName, announce: false);
+        string cue = ZooIds.CueName(shortName);
+        if (Game1.soundBank != null && Game1.soundBank.Exists(cue))
+        {
+            Game1.playSound(cue);
+            this.Status = this.T("record.preview", shortName);
+        }
+        else
+        {
+            this.Status = this.T("record.invalid", shortName, new { error = "no sound loaded" });
+        }
+    }
+
+    public bool TryReset(string shortName)
+    {
+        if (this.Busy)
+            return false;
+        string baked = this.DefaultPath(shortName);
         if (!File.Exists(baked))
             return false;
-        this.ignoreWatcherUntil = DateTime.UtcNow.AddSeconds(1);
         File.Copy(baked, this.WavPath(shortName), overwrite: true);
-        save.CustomRecordings.Remove("StardewZoo." + shortName);
-        this.RegisterCue(shortName);
+        this.Reload(shortName, announce: false);
+        this.Status = this.T("record.reset", shortName);
         return true;
     }
 
-    public string Record(string shortName, ZooSaveData save)
+    public void Record(string shortName)
     {
-        string path = this.WavPath(shortName);
-        Directory.CreateDirectory(this.SoundsDir);
-
-        string? ffmpeg = Which("ffmpeg");
-        if (ffmpeg != null)
+        if (this.Busy)
         {
-            if (this.Run(ffmpeg, $"-y -f avfoundation -i :0 -t 2.5 -ac 1 -ar 22050 \"{path}\""))
-                return this.OnRecorded(shortName, save, "ffmpeg");
-            this.monitor.Log("ffmpeg avfoundation capture failed; trying sox.", LogLevel.Trace);
+            this.Status = this.T("record.busy", this.jobAnimal!);
+            return;
         }
 
-        string? rec = Which("rec");
-        if (rec != null)
+        this.jobAnimal = shortName;
+        this.jobTemp = Path.Combine(Path.GetTempPath(), $"StardewZoo-{shortName}-{Guid.NewGuid():N}.wav");
+        IReadOnlyList<CaptureCommand> commands = CaptureTools.Available(this.jobTemp);
+        this.Status = this.T("record.listening", shortName);
+        if (commands.Count > 0)
         {
-            if (this.Run(rec, $"-r 22050 -c 1 -b 16 \"{path}\" trim 0 2.5"))
-                return this.OnRecorded(shortName, save, "sox");
-            this.monitor.Log("sox rec failed; trying OpenAL microphone.", LogLevel.Trace);
+            this.monitor.Log($"Recording {shortName} with {string.Join(", ", commands.Select(c => c.Executable))}.", LogLevel.Debug);
+            this.toolJob = Task.Run(() => this.RunTools(commands, this.jobTemp));
         }
-
-        Microphone? mic = Microphone.Default;
-        if (mic != null)
+        else
         {
-            this.capture.Clear();
-            this.captureNeeded = mic.GetSampleSizeInBytes(TimeSpan.FromSeconds(2.5));
-            this.capturingAnimal = shortName;
-            this.microphone = mic;
-            mic.Start();
-            return "mic";
+            this.monitor.Log($"Recording {shortName}: no ffmpeg/sox found in PATH or {string.Join(", ", CaptureTools.ExtraDirs)}; using the game's microphone.", LogLevel.Debug);
+            this.StartMicrophone();
         }
-
-        this.OpenSoundsFolder();
-        return "folder";
     }
 
     public void OpenSoundsFolder()
@@ -130,19 +152,235 @@ internal sealed class RecordingManager
         Directory.CreateDirectory(this.SoundsDir);
         try
         {
-            Process.Start(new ProcessStartInfo { FileName = "open", Arguments = $"\"{this.SoundsDir}\"", UseShellExecute = true });
+            string opener = OperatingSystem.IsMacOS() ? "open" : OperatingSystem.IsWindows() ? "explorer.exe" : "xdg-open";
+            var info = new ProcessStartInfo { FileName = opener, UseShellExecute = false };
+            info.ArgumentList.Add(this.SoundsDir);
+            Process.Start(info)?.Dispose();
         }
         catch (Exception ex)
         {
-            this.monitor.Log($"Could not open sounds folder: {ex.Message}", LogLevel.Warn);
+            this.monitor.Log($"Could not open sounds folder {this.SoundsDir}: {ex.Message}", LogLevel.Warn);
         }
     }
 
-    public void RegisterCue(string shortName)
+    private async Task<ToolOutcome> RunTools(IReadOnlyList<CaptureCommand> commands, string temp)
+    {
+        var problems = new List<string>();
+        foreach (CaptureCommand command in commands)
+        {
+            TryDelete(temp);
+            CaptureResult result = await CaptureTools.RunAsync(command, ToolTimeout).ConfigureAwait(false);
+            string tail = string.Join(" | ", result.Output.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).TakeLast(3));
+            if (!result.Started || result.TimedOut || result.ExitCode != 0)
+            {
+                problems.Add($"{command.Name}: {(result.TimedOut ? "timed out" : $"exit {result.ExitCode}")} {tail}");
+                continue;
+            }
+            if (!WavFile.TryRead(temp, out WavInfo? info, out string error))
+            {
+                problems.Add($"{command.Name}: bad output ({error}) {tail}");
+                continue;
+            }
+            if (WavFile.IsSilent(info!))
+                return new ToolOutcome(command.Name, true, $"{command.Name}: peak {info!.Peak}/32767");
+            return new ToolOutcome(command.Name, false, $"{info!.Seconds:0.00}s, {info.SampleRate} Hz, peak {info.Peak}");
+        }
+        return new ToolOutcome(null, false, string.Join("; ", problems));
+    }
+
+    private void FinishToolJob()
+    {
+        ToolOutcome outcome;
+        try
+        {
+            outcome = this.toolJob!.Result;
+        }
+        catch (Exception ex)
+        {
+            outcome = new ToolOutcome(null, false, ex.GetBaseException().Message);
+        }
+        this.toolJob = null;
+
+        if (outcome.Via == null)
+        {
+            this.monitor.Log($"External recorders failed ({outcome.Detail}); trying the game's microphone.", LogLevel.Warn);
+            this.StartMicrophone();
+            return;
+        }
+        this.monitor.Log($"Recorded {this.jobAnimal} via {outcome.Via}: {outcome.Detail}", LogLevel.Debug);
+        if (outcome.Silent)
+            this.Fail("record.silent", outcome.Detail);
+        else
+            this.Apply(outcome.Via);
+    }
+
+    private void StartMicrophone()
+    {
+        Microphone? mic = null;
+        try
+        {
+            mic = Microphone.Default ?? Microphone.All.FirstOrDefault();
+            if (mic == null)
+            {
+                this.FailToFolder("no capture device reported by OpenAL");
+                return;
+            }
+            // MonoGame only reports queued samples while a BufferReady handler is attached.
+            mic.BufferReady += this.OnMicBuffer;
+            mic.Start();
+        }
+        catch (Exception ex)
+        {
+            if (mic != null)
+                mic.BufferReady -= this.OnMicBuffer;
+            this.FailToFolder($"microphone '{mic?.Name}': {ex.Message}");
+            return;
+        }
+
+        this.capture.Clear();
+        this.captureNeeded = mic.GetSampleSizeInBytes(TimeSpan.FromSeconds(CaptureTools.Seconds));
+        this.microphone = mic;
+        this.micDeadline = DateTime.UtcNow + TimeSpan.FromSeconds(CaptureTools.Seconds) + MicGrace;
+        this.monitor.Log($"Recording {this.jobAnimal} from microphone '{mic.Name}' at {mic.SampleRate} Hz.", LogLevel.Debug);
+    }
+
+    private void OnMicBuffer(object? sender, EventArgs e) => this.ReadMicrophone();
+
+    private void ReadMicrophone()
+    {
+        if (this.microphone is not { State: MicrophoneState.Started } mic)
+            return;
+        var buffer = new byte[8192];
+        int read;
+        while ((read = mic.GetData(buffer)) > 0)
+            this.capture.AddRange(buffer.AsSpan(0, read).ToArray());
+    }
+
+    private void TickMicrophone()
+    {
+        try
+        {
+            this.ReadMicrophone();
+        }
+        catch (Exception ex)
+        {
+            this.monitor.Log($"Microphone read failed: {ex.Message}", LogLevel.Warn);
+            this.micDeadline = DateTime.MinValue;
+        }
+        if (this.capture.Count < this.captureNeeded && DateTime.UtcNow < this.micDeadline)
+            return;
+
+        Microphone mic = this.microphone!;
+        int rate = mic.SampleRate;
+        this.microphone = null;
+        mic.BufferReady -= this.OnMicBuffer;
+        try { mic.Stop(); } catch (Exception ex) { this.monitor.Log($"Microphone stop failed: {ex.Message}", LogLevel.Trace); }
+
+        byte[] pcm = this.capture.Take(this.captureNeeded).ToArray();
+        this.capture.Clear();
+        if (pcm.Length < rate / 5 * 2)
+        {
+            this.Fail("record.silent", $"microphone returned {pcm.Length} bytes");
+            return;
+        }
+
+        WavFile.Write(this.jobTemp!, pcm, rate);
+        if (WavFile.TryRead(this.jobTemp!, out WavInfo? info, out _) && WavFile.IsSilent(info!))
+        {
+            this.Fail("record.silent", $"microphone peak {info!.Peak}/32767");
+            return;
+        }
+        this.Apply("microphone");
+    }
+
+    private void Apply(string via)
+    {
+        string animal = this.jobAnimal!;
+        string temp = this.jobTemp!;
+        if (!WavFile.TryRead(temp, out _, out string error))
+        {
+            this.Fail("record.invalid", error);
+            return;
+        }
+        File.Copy(temp, this.WavPath(animal), overwrite: true);
+        this.EndJob();
+        this.Reload(animal, announce: false);
+        this.monitor.Log($"Saved new {animal} sound via {via}.", LogLevel.Info);
+        this.Status = this.T("record.saved", animal);
+        Game1.addHUDMessage(new HUDMessage(this.Status, HUDMessage.newQuest_type));
+        Game1.playSound(ZooIds.CueName(animal));
+    }
+
+    private void FailToFolder(string detail)
+    {
+        string animal = this.jobAnimal!;
+        this.monitor.Log($"Can't record {animal}: {detail}. Opening {this.SoundsDir} so a WAV can be dropped in.", LogLevel.Warn);
+        this.EndJob();
+        this.OpenSoundsFolder();
+        this.Status = this.T("record.drop-wav", animal);
+        Game1.addHUDMessage(new HUDMessage(this.Status, HUDMessage.error_type));
+    }
+
+    private void Fail(string key, string detail)
+    {
+        string animal = this.jobAnimal!;
+        this.monitor.Log($"Recording {animal} failed ({key}): {detail}. Kept the previous sound.", LogLevel.Warn);
+        this.EndJob();
+        this.Status = this.T(key, animal, new { error = detail });
+        Game1.addHUDMessage(new HUDMessage(this.Status, HUDMessage.error_type));
+    }
+
+    private void EndJob()
+    {
+        if (this.jobTemp != null)
+            TryDelete(this.jobTemp);
+        this.jobAnimal = null;
+        this.jobTemp = null;
+        this.toolJob = null;
+    }
+
+    /// <summary>Re-register the cue if the WAV changed since it was last loaded.</summary>
+    private void Reload(string shortName, bool announce)
     {
         string path = this.WavPath(shortName);
-        if (!File.Exists(path) || Game1.soundBank == null || Game1.audioEngine == null)
+        var file = new FileInfo(path);
+        if (!file.Exists)
             return;
+        var stamp = (file.LastWriteTimeUtc, file.Length);
+        if (this.stamps.TryGetValue(shortName, out var known) && known == stamp)
+            return;
+        if (announce && DateTime.UtcNow - file.LastWriteTimeUtc < TimeSpan.FromMilliseconds(500))
+            return;
+
+        this.stamps[shortName] = stamp;
+        bool isCustom = !WavFile.SameContent(path, this.DefaultPath(shortName));
+        this.custom[shortName] = isCustom;
+        this.SyncSaveFlag(shortName, isCustom);
+
+        if (!WavFile.TryRead(path, out _, out string error))
+        {
+            this.monitor.Log($"{path} can't be used ({error}); using the default {shortName} sound.", LogLevel.Warn);
+            this.RegisterCue(shortName, this.DefaultPath(shortName));
+            if (announce)
+            {
+                this.Status = this.T("record.invalid", shortName, new { error });
+                Game1.addHUDMessage(new HUDMessage(this.Status, HUDMessage.error_type));
+            }
+            return;
+        }
+
+        if (this.RegisterCue(shortName, path) && announce)
+        {
+            this.monitor.Log($"Reloaded {shortName}.wav from the sounds folder.", LogLevel.Info);
+            this.Status = this.T("record.reloaded", shortName);
+            Game1.addHUDMessage(new HUDMessage(this.Status, HUDMessage.newQuest_type));
+        }
+    }
+
+    private bool RegisterCue(string shortName, string path)
+    {
+        if (!File.Exists(path) || Game1.soundBank == null || Game1.audioEngine == null)
+            return false;
 
         try
         {
@@ -150,143 +388,65 @@ internal sealed class RecordingManager
             using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                 effect = SoundEffect.FromStream(stream, false);
 
-            string cueName = ZooIds.CueName("StardewZoo." + shortName);
+            string cueName = ZooIds.CueName(shortName);
             int category = Game1.audioEngine.GetCategoryIndex("Sound");
             if (Game1.soundBank.Exists(cueName))
             {
-                CueDefinition existing = Game1.soundBank.GetCueDefinition(cueName);
-                existing.SetSound(effect, category, false, false);
+                // SetSound releases the previous SoundEffect; every later playSound builds a new Cue from this definition.
+                Game1.soundBank.GetCueDefinition(cueName).SetSound(effect, category, false, false);
             }
             else
             {
-                var cue = new CueDefinition();
-                cue.name = cueName;
-                cue.instanceLimit = 1;
-                cue.limitBehavior = CueDefinition.LimitBehavior.ReplaceOldest;
-                cue.SetSound(effect, category, false, false);
+                var cue = new CueDefinition(cueName, effect, category)
+                {
+                    instanceLimit = 1,
+                    limitBehavior = CueDefinition.LimitBehavior.ReplaceOldest
+                };
                 Game1.soundBank.AddCue(cue);
             }
+            return true;
         }
         catch (Exception ex)
         {
-            this.monitor.Log($"Failed to register cue for {shortName}: {ex.Message}", LogLevel.Warn);
-        }
-    }
-
-    private void FinishMicCapture()
-    {
-        string? animal = this.capturingAnimal;
-        try
-        {
-            this.microphone?.Stop();
-        }
-        catch
-        {
-            // ignore
-        }
-
-        this.microphone = null;
-        this.capturingAnimal = null;
-        if (animal == null)
-            return;
-
-        int rate = Microphone.Default?.SampleRate ?? 44100;
-        WriteWav(this.WavPath(animal), this.capture.ToArray(), rate);
-        var save = this.helper.Data.ReadSaveData<ZooSaveData>(ZooSaveData.Key) ?? new ZooSaveData();
-        this.OnRecorded(animal, save, "microphone");
-        this.helper.Data.WriteSaveData(ZooSaveData.Key, save);
-        Game1.addHUDMessage(new HUDMessage(this.helper.Translation.Get("record.saved", new { animal }), HUDMessage.newQuest_type));
-    }
-
-    private string OnRecorded(string shortName, ZooSaveData save, string via)
-    {
-        this.ignoreWatcherUntil = DateTime.UtcNow.AddSeconds(1);
-        if (!save.CustomRecordings.Contains("StardewZoo." + shortName))
-            save.CustomRecordings.Add("StardewZoo." + shortName);
-        this.RegisterCue(shortName);
-        this.monitor.Log($"Recorded {shortName} via {via}.", LogLevel.Info);
-        return via;
-    }
-
-    private void OnWavDropped(object sender, FileSystemEventArgs e)
-    {
-        if (DateTime.UtcNow < this.ignoreWatcherUntil)
-            return;
-        string name = Path.GetFileNameWithoutExtension(e.Name ?? "");
-        if (string.IsNullOrEmpty(name) || name.Contains(Path.DirectorySeparatorChar))
-            return;
-        if (!ZooIds.AnimalTypes.Any(id => ZooIds.ShortName(id).Equals(name, StringComparison.OrdinalIgnoreCase)))
-            return;
-        this.RegisterCue(name);
-        var save = this.helper.Data.ReadSaveData<ZooSaveData>(ZooSaveData.Key) ?? new ZooSaveData();
-        string id = "StardewZoo." + name;
-        if (!save.CustomRecordings.Contains(id))
-            save.CustomRecordings.Add(id);
-        this.helper.Data.WriteSaveData(ZooSaveData.Key, save);
-        this.monitor.Log($"Reloaded dropped recording {name}.wav.", LogLevel.Info);
-    }
-
-    private bool Run(string fileName, string arguments)
-    {
-        try
-        {
-            using var process = Process.Start(new ProcessStartInfo
-            {
-                FileName = fileName,
-                Arguments = arguments,
-                RedirectStandardError = true,
-                RedirectStandardOutput = true,
-                UseShellExecute = false,
-                CreateNoWindow = true
-            });
-            if (process == null)
-                return false;
-            if (!process.WaitForExit(8000))
-            {
-                try { process.Kill(); } catch { /* ignore */ }
-                return false;
-            }
-            return process.ExitCode == 0 && File.Exists(arguments.Trim().Split(' ').Last().Trim('"'));
-        }
-        catch (Exception ex)
-        {
-            this.monitor.Log($"{fileName} failed: {ex.Message}", LogLevel.Trace);
+            this.monitor.Log($"Failed to register cue for {shortName} from {path}: {ex.Message}", LogLevel.Warn);
             return false;
         }
     }
 
-    private static string? Which(string name)
+    private void SyncSaveFlag(string shortName, bool isCustom)
     {
-        var dirs = (Environment.GetEnvironmentVariable("PATH") ?? "")
-            .Split(Path.PathSeparator)
-            .Concat(new[] { "/opt/homebrew/bin", "/usr/local/bin" });
-        foreach (string dir in dirs)
-        {
-            string candidate = Path.Combine(dir, name);
-            if (File.Exists(candidate))
-                return candidate;
-        }
-        return null;
+        string id = "StardewZoo." + shortName;
+        if (!isCustom)
+            this.save.CustomRecordings.Remove(id);
+        else if (!this.save.CustomRecordings.Contains(id))
+            this.save.CustomRecordings.Add(id);
     }
 
-    private static void WriteWav(string path, byte[] pcm, int sampleRate)
+    private string T(string key, string shortName, object? extra = null)
     {
-        using var stream = new FileStream(path, FileMode.Create, FileAccess.Write);
-        using var writer = new BinaryWriter(stream);
-        int dataSize = pcm.Length;
-        writer.Write(System.Text.Encoding.ASCII.GetBytes("RIFF"));
-        writer.Write(36 + dataSize);
-        writer.Write(System.Text.Encoding.ASCII.GetBytes("WAVE"));
-        writer.Write(System.Text.Encoding.ASCII.GetBytes("fmt "));
-        writer.Write(16);
-        writer.Write((short)1);
-        writer.Write((short)1);
-        writer.Write(sampleRate);
-        writer.Write(sampleRate * 2);
-        writer.Write((short)2);
-        writer.Write((short)16);
-        writer.Write(System.Text.Encoding.ASCII.GetBytes("data"));
-        writer.Write(dataSize);
-        writer.Write(pcm);
+        var tokens = new Dictionary<string, object?>
+        {
+            ["animal"] = this.DisplayName(shortName),
+            ["file"] = shortName + ".wav"
+        };
+        if (extra != null)
+        {
+            foreach (var prop in extra.GetType().GetProperties())
+                tokens[prop.Name] = prop.GetValue(extra);
+        }
+        return this.helper.Translation.Get(key, tokens);
+    }
+
+    private static void TryDelete(string path)
+    {
+        try
+        {
+            if (File.Exists(path))
+                File.Delete(path);
+        }
+        catch
+        {
+            // temp file cleanup is best-effort
+        }
     }
 }

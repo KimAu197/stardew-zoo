@@ -83,8 +83,7 @@ def main():
     defaults = OUT / "defaults"
     for name, samples in ANIMALS.items():
         write_wav(defaults / f"{name}.wav", samples)
-        write_wav(OUT / f"{name}.wav", samples)
-    print(f"Wrote {len(ANIMALS)} default WAVs to {OUT}")
+    print(f"Wrote {len(ANIMALS)} default WAVs to {defaults}")
 
 
 if __name__ == "__main__":

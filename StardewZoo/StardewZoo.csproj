@@ -13,6 +13,6 @@
     <PackageReference Include="Pathoschild.Stardew.ModBuildConfig" Version="4.4.0" />
   </ItemGroup>
   <ItemGroup>
-    <None Update="sounds\**\*.wav" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="sounds\defaults\*.wav" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>
