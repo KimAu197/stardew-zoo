@@ -79,6 +79,11 @@ def masked(img, mask, draw_fn):
     img.alpha_composite(layer)
 
 
+def blend(img, draw_fn):
+    """Alpha-blend translucent strokes; ImageDraw on RGBA replaces pixels and would punch holes."""
+    masked(img, Image.new("L", img.size, 255), draw_fn)
+
+
 def make_mask(size, fn):
     m = Image.new("L", size, 0)
     fn(ImageDraw.Draw(m))
@@ -289,7 +294,7 @@ def draw_facade_water(w, h):
         for k in range(6):
             bx, by = box[0] + rng.randint(3, 50), box[1] + rng.randint(3, 45)
             d.ellipse((bx, by, bx + 2, by + 2), outline=(230, 250, 255, 255))
-        d.line((box[0] + 3, box[1] + 14, box[0] + 14, box[1] + 3), fill=(255, 255, 255, 140), width=2)
+        blend(im, lambda dd, _, box=box: dd.line((box[0] + 3, box[1] + 14, box[0] + 14, box[1] + 3), fill=(255, 255, 255, 140), width=2))
         d.line((box[0] + 26, box[1], box[0] + 26, box[3]), fill=NAVY[1], width=2)
     # porthole tank between the windows
     py = 64
@@ -303,7 +308,7 @@ def draw_facade_water(w, h):
     d.line((cx - 7, py + 6, cx - 7 + 1, py - 2), fill=C("#2f9a4a"), width=2)
     fish(d, cx - 2, py - 3, C("#ffb02e"), darker(C("#ffb02e"), 0.8))
     d.ellipse((cx + 4, py - 8, cx + 6, py - 6), outline=(230, 250, 255, 255))
-    d.line((cx - 7, py - 3, cx - 3, py - 7), fill=(255, 255, 255, 140), width=2)
+    blend(im, lambda dd, _: dd.line((cx - 7, py - 3, cx - 3, py - 7), fill=(255, 255, 255, 140), width=2))
     # striped awning over the door
     ax0, ax1, ay = cx - 12, cx + 11, H - 38
     d.rectangle((ax0, ay, ax1, ay + 4), fill=(255, 255, 255, 255), outline=NAVY[0])
@@ -391,7 +396,7 @@ def draw_facade_jungle(w, h):
     d.rectangle((cx - 12, 82, cx + 12, H - 1), fill=WHITE[4], outline=WHITE[0])
     vgrad(im, (cx - 9, 85, cx + 9, H - 3), C("#5fb06a"), C("#1d5e26"))
     d.line((cx, 85, cx, H - 1), fill=WHITE[4], width=2)
-    d.line((cx - 7, 88, cx - 3, 96), fill=(255, 255, 255, 150))
+    blend(im, lambda dd, _: dd.line((cx - 7, 88, cx - 3, 96), fill=(255, 255, 255, 150)))
     for x in (cx - 3, cx + 2):
         d.rectangle((x, 102, x + 1, 107), fill=GOLD[2])
     d.rectangle((cx - 13, H - 3, cx + 13, H - 1), fill=STONE[4])
@@ -449,9 +454,10 @@ def draw_facade_prehistoric(w, h):
         d.ellipse((cx + 12 * math.cos(a) - 1, 52 + 11 * math.sin(a) - 1, cx + 12 * math.cos(a) + 2, 52 + 11 * math.sin(a) + 2),
                   fill=BONE[3], outline=BONE[0])
     # lava glow from inside
-    for y in range(56, H - 5):
-        a = int(90 * (y - 56) / (H - 61))
-        d.line((cx - 9, y, cx + 9, y), fill=(255, 120, 30, a))
+    def glow(dd, _):
+        for y in range(56, H - 5):
+            dd.line((cx - 9, y, cx + 9, y), fill=(255, 120, 30, int(90 * (y - 56) / (H - 61))))
+    blend(im, glow)
     # volcanic boulders at the corners
     for x0, flip in ((0, False), (W - 22, True)):
         shade(im, lambda m, x0=x0: m.polygon([(x0, H - 1), (x0 + 3, H - 18), (x0 + 11, H - 26), (x0 + 19, H - 16), (x0 + 22, H - 1)], fill=255), BASALT)
