@@ -30,6 +30,15 @@ public sealed class ModConfig
 
     public int ReviewSampleSize { get; set; } = 8;
 
+    /// <summary>Whether zoo animals call out when the player walks near them, without petting.</summary>
+    public bool AnimalCallsOnApproach { get; set; } = true;
+
+    /// <summary>How close, in tiles, the player must get for an animal to call.</summary>
+    public float AnimalCallRadius { get; set; } = 3f;
+
+    /// <summary>Minimum seconds before the same animal can call again (the player must also leave and come back).</summary>
+    public double AnimalCallCooldownSeconds { get; set; } = 8;
+
     /// <summary>Income / demand multiplier per zoo building ID; unknown IDs use 1.0.</summary>
     public Dictionary<string, double> Multipliers { get; set; } = new()
     {

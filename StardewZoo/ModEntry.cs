@@ -21,6 +21,7 @@ internal sealed class ModEntry : Mod
         this.config.TicketPrice = Math.Clamp(this.config.TicketPrice, this.config.MinTicketPrice, this.config.MaxTicketPrice);
         this.visitors = new VisitorManager(this.Monitor, helper.Translation);
         this.recording = new RecordingManager(helper, this.Monitor);
+        new AnimalCallHandler(helper, this.config);
 
         helper.Events.GameLoop.GameLaunched += this.OnGameLaunched;
         helper.Events.GameLoop.SaveLoaded += this.OnSaveLoaded;
