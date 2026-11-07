@@ -291,19 +291,38 @@ def draw_facade_water(w, h):
             d.ellipse((bx, by, bx + 2, by + 2), outline=(230, 250, 255, 255))
         d.line((box[0] + 3, box[1] + 14, box[0] + 14, box[1] + 3), fill=(255, 255, 255, 140), width=2)
         d.line((box[0] + 26, box[1], box[0] + 26, box[3]), fill=NAVY[1], width=2)
-    # entrance with glass double doors
-    d.rectangle((cx - 15, 60, cx + 15, H - 1), fill=NAVY[1], outline=NAVY[0])
-    d.pieslice((cx - 15, 46, cx + 15, 76), 180, 360, fill=NAVY[1], outline=NAVY[0])
-    d.pieslice((cx - 11, 52, cx + 11, 72), 180, 360, fill=GLASS[2])
-    for a in range(200, 360, 30):
-        d.line((cx, 62, cx + 11 * math.cos(math.radians(a)), 62 + 10 * math.sin(math.radians(a))), fill=NAVY[1])
-    vgrad(im, (cx - 11, 64, cx + 11, H - 2), GLASS[2], GLASS[0])
-    d.line((cx, 64, cx, H - 1), fill=NAVY[0])
-    d.line((cx - 9, 68, cx - 4, 80), fill=GLASS[3])
-    d.line((cx + 3, 68, cx + 8, 80), fill=GLASS[3])
-    for x in (cx - 3, cx + 2):
-        d.rectangle((x, 90, x + 1, 96), fill=GOLD[2])
-    d.rectangle((cx - 13, H - 4, cx + 13, H - 1), fill=ROCK[4])
+    # porthole tank between the windows
+    py = 64
+    d.ellipse((cx - 14, py - 14, cx + 13, py + 13), fill=NAVY[1], outline=NAVY[0])
+    d.ellipse((cx - 12, py - 12, cx + 11, py + 11), fill=GOLD[2], outline=darker(GOLD[2], 0.6))
+    port = make_mask(im.size, lambda m: m.ellipse((cx - 10, py - 10, cx + 9, py + 9), fill=255))
+    vgrad(im, (cx - 10, py - 10, cx + 9, py + 9), OCEAN[4], OCEAN[1], mask=port)
+    for a in range(0, 360, 45):
+        rx, ry = cx - 0.5 + 11 * math.cos(math.radians(a)), py - 0.5 + 11 * math.sin(math.radians(a))
+        d.point((round(rx), round(ry)), fill=GOLD[3])
+    d.line((cx - 7, py + 6, cx - 7 + 1, py - 2), fill=C("#2f9a4a"), width=2)
+    fish(d, cx - 2, py - 3, C("#ffb02e"), darker(C("#ffb02e"), 0.8))
+    d.ellipse((cx + 4, py - 8, cx + 6, py - 6), outline=(230, 250, 255, 255))
+    d.line((cx - 7, py - 3, cx - 3, py - 7), fill=(255, 255, 255, 140), width=2)
+    # striped awning over the door
+    ax0, ax1, ay = cx - 12, cx + 11, H - 38
+    d.rectangle((ax0, ay, ax1, ay + 4), fill=(255, 255, 255, 255), outline=NAVY[0])
+    for x in range(ax0 + 1, ax1, 6):
+        d.rectangle((x, ay + 1, x + 2, ay + 3), fill=OCEAN[3])
+    for x in range(ax0, ax1, 4):
+        d.pieslice((x, ay + 3, x + 4, ay + 7), 0, 180, fill=OCEAN[3] if (x - ax0) % 8 == 0 else (255, 255, 255, 255),
+                   outline=NAVY[0])
+    # glass double doors filling the walkable door tile (one tile wide, two tall)
+    dx0, dx1, dy0 = cx - 8, cx + 7, H - 32
+    d.rectangle((dx0 - 2, dy0 + 2, dx1 + 2, H - 1), fill=NAVY[1], outline=NAVY[0])
+    vgrad(im, (dx0, dy0 + 4, dx1, H - 3), GLASS[2], GLASS[0])
+    d.line((cx, dy0 + 4, cx, H - 3), fill=NAVY[1])
+    d.line((dx0, H - 9, dx1, H - 9), fill=NAVY[1])
+    d.line((dx0 + 1, dy0 + 7, dx0 + 4, dy0 + 13), fill=GLASS[3])
+    d.line((cx + 2, dy0 + 7, cx + 5, dy0 + 13), fill=GLASS[3])
+    for x in (cx - 2, cx + 1):
+        d.rectangle((x, dy0 + 15, x, dy0 + 19), fill=GOLD[2])
+    d.rectangle((dx0 - 1, H - 2, dx1 + 1, H - 1), fill=ROCK[4])
     return im
 
 
