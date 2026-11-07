@@ -19,7 +19,7 @@ internal sealed class ModEntry : Mod
     {
         this.config = helper.ReadConfig<ModConfig>();
         this.config.TicketPrice = Math.Clamp(this.config.TicketPrice, this.config.MinTicketPrice, this.config.MaxTicketPrice);
-        this.visitors = new VisitorManager(this.Monitor, helper.Translation);
+        this.visitors = new VisitorManager(helper, this.Monitor, () => this.config, () => this.save);
         this.recording = new RecordingManager(helper, this.Monitor);
         new AnimalCallHandler(helper, this.config);
 
