@@ -1,11 +1,11 @@
 """Place the walk-in pavilions: park facades and the four interior regions of the zoo map.
 
-Each interior is a closed hall (shell art on Buildings), a walkway ring of themed floor,
-and a railed exhibit pen in the middle. Pens never get Buildings tiles (HabitatKeeper
+Each interior is a closed hall (shell art on Buildings), a walkway ring of themed floor
+left open for the player's furniture, and a railed exhibit pen in the middle. Pens never get Buildings tiles (HabitatKeeper
 drops animals on any pen tile), so exhibit props live on Back / Front / AlwaysFront.
 """
 
-from zoo_layout import FACADES, REGIONS, WALL_ROWS, ZOO_PERCHES, barrier, facade_door, inside_door, pavilion_pen
+from zoo_layout import FACADES, REGIONS, ZOO_PERCHES, barrier, facade_door, inside_door, pavilion_pen
 
 FLOOR = {"Ice": "a", "Water": "b", "Jungle": "e", "Prehistoric": "f"}
 PEN_BASE = {"Ice": "n", "Water": "s", "Jungle": "k", "Prehistoric": "v"}
@@ -87,22 +87,6 @@ def _rails(m, name):
             m.used.add((cx, cy))
 
 
-def _walkway(m, name, plant):
-    x, y, w, h = REGIONS[name]
-    ax = x + w // 2
-    bottom = y + h - 2
-    m.zoo_lamp(x + 1, bottom)
-    m.zoo_lamp(x + w - 2, bottom)
-    m.obj("bench", ax - 6, bottom, "Buildings")
-    m.obj("bench", ax + 5, bottom, "Buildings")
-    m.obj("bin", ax - 3, bottom, "Buildings")
-    m.obj("bin_recycle", ax + 3, bottom, "Buildings")
-    for px, py in ((x + 1, y + WALL_ROWS), (x + w - 2, y + WALL_ROWS), (x + 1, y + WALL_ROWS + 5), (x + w - 2, y + WALL_ROWS + 5)):
-        m.obj(plant, px, py, "Buildings")
-    m.obj(f"plaque_{name}", x + 6, y + WALL_ROWS, "Buildings")
-    m.obj(f"plaque_{name}", x + w - 7, y + WALL_ROWS, "Buildings")
-
-
 def _exhibit_ice(m, rng, scatter, allin):
     x, y, w, h = pavilion_pen("Ice")
     m.obj("igloo", x + 1, y, ["Front", "Back"])
@@ -167,10 +151,6 @@ def interiors(m, rng, scatter, ferns, island):
     for name in REGIONS:
         _shell(m, name)
         _rails(m, name)
-    _walkway(m, "Ice", "planter_blue")
-    _walkway(m, "Water", "planter_blue")
-    _walkway(m, "Jungle", "fern_pot")
-    _walkway(m, "Prehistoric", "fern_pot")
     _exhibit_ice(m, rng, scatter, allin)
     _exhibit_water(m, rng, scatter, allin)
     _exhibit_jungle(m, rng, scatter, allin, ferns, island)

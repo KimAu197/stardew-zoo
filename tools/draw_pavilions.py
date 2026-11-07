@@ -882,7 +882,6 @@ def build_pavilion_objects(zs, facades, regions):
     zs.add_object("lava_pool", lava_frames(), ms=320)
     zs.add_object("ice_pillar", draw_ice_pillar())
     zs.add_object("fossil_dig", draw_fossil_dig())
-    zs.add_object("fern_pot", draw_fern_pot())
 
 
 def add_object_dedupe(zs, name, frames, ms):

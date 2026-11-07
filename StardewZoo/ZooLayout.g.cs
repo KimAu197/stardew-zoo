@@ -30,6 +30,7 @@ public static partial class ZooLayout
     public static readonly IReadOnlyList<VisitorStep> VisitorRoute = new VisitorStep[]
     {
         new(18, 28, false),
+        new(21, 27, false),
         new(1, 28, false),
         new(1, 21, false),
         new(1, 11, false),
@@ -98,5 +99,5 @@ public static partial class ZooLayout
     };
 
     /// <summary>Park paths and door spurs (pavilion walkways are <see cref="PavilionInfo.Walkway"/>).</summary>
-    public static readonly IReadOnlyList<ZooRect> ParkPaths = new ZooRect[] { new(1, 1, 36, 1), new(1, 11, 36, 1), new(1, 21, 36, 1), new(1, 28, 36, 1), new(1, 1, 1, 28), new(36, 1, 1, 28), new(18, 1, 2, 29), new(14, 12, 10, 9), new(7, 10, 1, 1), new(30, 10, 1, 1), new(30, 20, 1, 1), new(30, 27, 1, 1) };
+    public static readonly IReadOnlyList<ZooRect> ParkPaths = new ZooRect[] { new(1, 1, 36, 1), new(1, 11, 36, 1), new(1, 21, 36, 1), new(1, 28, 36, 1), new(1, 1, 1, 28), new(36, 1, 1, 28), new(18, 1, 2, 29), new(14, 12, 10, 9), new(20, 27, 3, 1), new(7, 10, 1, 1), new(30, 10, 1, 1), new(30, 20, 1, 1), new(30, 27, 1, 1) };
 }

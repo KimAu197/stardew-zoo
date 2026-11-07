@@ -12,7 +12,7 @@ from collections import deque
 from pathlib import Path
 
 from vanilla import MAPS
-from zoo_layout import (BOARD, BOOTH, CS_PATH, ENTRANCE, FACADES, HABITATS, LOOP_PATHS, OPEN_PENS, OUTDOOR, PATHS,
+from zoo_layout import (BOARD, BOARD_ORIGIN, BOOTH, BOOTH_FRONT, BOOTH_ORIGIN, CS_PATH, STUDIO_ORIGIN, ENTRANCE, FACADES, HABITATS, LOOP_PATHS, OPEN_PENS, OUTDOOR, PATHS,
                         PAVILIONS, PRODUCE_AREA, REGIONS, STUDIO, VISITOR_ROUTE, WARP_TILES, ZOO_PERCHES, barrier, csharp,
                         facade_door, inner_loop, inside_arrival, inside_door, outside_arrival, region_of)
 
@@ -21,16 +21,13 @@ MOD = ROOT / "[CP] Stardew Zoo"
 TMX = MOD / "assets" / "StardewZoo.tmx"
 GID_MASK = 0x1FFFFFFF
 
-# Path tiles deliberately covered by props (all on the plaza square and the centre avenue through it).
+# Path tiles deliberately covered by props: only the working props on the plaza's north edge, either side of the
+# centre avenue. Everything else on the paths (and all decor) is left to the player's furniture.
 PATH_PROPS = {
-    (15, 12), (22, 12),                                  # plaza street lamps
-    (15, 14), (22, 14), (15, 17), (22, 17),              # plaza planters
-    (16, 14), (17, 14), (18, 14), (19, 14), (20, 14), (21, 14),  # ticket booth + review board counters
-    (17, 16), (18, 16), (19, 16), (20, 16),              # speaker, recording studio, mic
-    (18, 18), (19, 18), (18, 19), (19, 19),              # fountain
-    (15, 19), (16, 19), (21, 19), (22, 19),              # plaza benches
-    (14, 19), (23, 19),                                  # plaza bins
+    (15, 14), (16, 14), (17, 14),                        # review board
+    (20, 14), (21, 14), (22, 14), (23, 14),              # speaker, recording studio, mic
 }
+MAX_BOOTH_STEPS = 4  # walking steps from the entrance landing to the ticket window
 TOUCH_ACTION = "StardewZoo_Pavilion"
 
 failures = []
@@ -230,7 +227,7 @@ def main():
     # --- path width: every park path tile and pavilion inner-lane tile is walkable, bar deliberate props ---
     path_tiles = set().union(*(rect_tiles(p) for p in PATHS))
     blocked = sorted(t for t in path_tiles if not walkable(*t) and t not in PATH_PROPS)
-    check(not blocked, f"park paths: all {len(path_tiles)} path tiles walkable except {len(PATH_PROPS)} allowlisted plaza props (blocked {blocked[:6]})")
+    check(not blocked, f"park paths: all {len(path_tiles)} path tiles walkable except {len(PATH_PROPS)} allowlisted board/studio tiles (blocked {blocked[:6]})")
     stale = sorted(t for t in PATH_PROPS if walkable(*t))
     check(not stale, f"path prop allowlist only lists blocked tiles (now walkable {stale[:6]})")
     loop = flood(ENTRANCE, blocked=frozenset(t for t in rect_tiles(OUTDOOR) if t not in path_tiles))
@@ -252,6 +249,30 @@ def main():
     sides = [(landing[0] - 1, landing[1]), (landing[0] + 1, landing[1])]
     check(landing == ENTRANCE and landing in path_tiles and walkable(*landing) and all(walkable(*s) and s in path_tiles for s in sides),
           f"entrance landing {landing} (one above the first Warp) is ENTRANCE {ENTRANCE} on the loop path, left/right {sides} walkable")
+    north = [(x, ENTRANCE[1] - 1) for x in (ENTRANCE[0], ENTRANCE[0] + 1)]
+    check(all(walkable(*t) and t in path_tiles for t in north), f"centre avenue {north} leads north from the entrance")
+
+    # --- ticket booth at the entrance: its window is a few steps from the landing, off the loop and the avenue ---
+    dist, q = {ENTRANCE: 0}, deque([ENTRANCE])
+    while q:
+        x, y = q.popleft()
+        for n in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)):
+            if n not in dist and walkable(*n):
+                dist[n] = dist[(x, y)] + 1
+                q.append(n)
+    steps = dist.get(BOOTH_FRONT)
+    bx, by = BOOTH
+    check(BOOTH_FRONT == (bx, by + 1) and BOOTH_FRONT in path_tiles and steps is not None and steps <= MAX_BOOTH_STEPS,
+          f"ticket window {BOOTH_FRONT} faces the booth counter {BOOTH} and is {steps} steps from the entrance (max {MAX_BOOTH_STEPS})")
+    check(VISITOR_ROUTE[1] == ("walk", BOOTH_FRONT), "visitors queue at the ticket window first")
+    booth_tiles = rect_tiles((BOOTH_ORIGIN[0], BOOTH_ORIGIN[1], 3, 4))
+    zoo_first = first_gid["zoo_tiles"]
+    working = booth_tiles | rect_tiles((BOARD_ORIGIN[0], BOARD_ORIGIN[1], 3, 4)) | rect_tiles((STUDIO_ORIGIN[0] - 1, STUDIO_ORIGIN[1], 4, 2))
+    working |= set().union(*(rect_tiles(r) for r in FACADES.values()))
+    baked = sorted(t for t in rect_tiles(OUTDOOR) if bld[t[1]][t[0]] & GID_MASK >= zoo_first and t not in working)
+    check(not baked, f"no baked-in park decor: zoo_tiles props on park Buildings are only facades, booth, board and studio (stray {baked[:4]})")
+    check(not booth_tiles & set().union(*(rect_tiles(r) for r in LOOP_PATHS + [(18, 1, 2, 29)])),
+          "the booth footprint stays off the loop path and the centre avenue")
     check(first_warp == WARP_TILES[0] and all(walkable(*t) and region_of(*t) == "Outdoor" for t in WARP_TILES),
           f"exit warps {WARP_TILES} sit on walkable gate tiles and match the Warp property ({props.get('Warp')})")
 

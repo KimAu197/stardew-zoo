@@ -1253,22 +1253,8 @@ def build_objects(zs: ZooSheet):
     zs.add_object("studio", draw_studio())
     zs.add_object("speaker", draw_speaker())
     zs.add_object("mic", draw_mic())
-    zs.add_object("fountain", fountain_frames(), ms=180)
-    zs.add_object("bench", draw_bench())
-    for name, flower in (("planter_red", ("#c23b22", "#ff8a6a")), ("planter_yellow", ("#c98a16", "#ffe58a")),
-                         ("planter_pink", ("#b0407a", "#ffb3cf")), ("planter_blue", ("#3a5fc8", "#a9c8ff"))):
-        zs.add_object(name, draw_planter(flower))
-    zs.add_object("lamp", draw_lamp())
-    zs.add_object("bin", draw_bin())
-    zs.add_object("bin_recycle", draw_bin(True))
-    zs.add_object("snack_cart", draw_cart("snack"))
-    zs.add_object("icecream_cart", draw_cart("icecream"))
-    zs.add_object("balloons", draw_balloons())
-    for left, right in (("Ice", "Water"), ("Savanna", "Jungle"), ("Forest", "Prehistoric")):
-        zs.add_object(f"sign_{left}_{right}", draw_signpost(left, right))
-    for biome in ("Ice", "Water", "Savanna", "Jungle", "Forest", "Prehistoric"):
-        zs.add_object(f"plaque_{biome}", draw_plaque(biome))
-    zs.add_object("arch", draw_arch())
+    # Park decor (bench, planters, lamp, bins, carts, balloons, signposts, plaques, fountain, arch) is drawn here but
+    # sold as furniture: draw_furniture.py renders it into Furniture.png instead of baking it into the map.
     # pen props / decals
     zs.add_object("igloo", draw_igloo())
     zs.add_object("ice_block", draw_ice_block())

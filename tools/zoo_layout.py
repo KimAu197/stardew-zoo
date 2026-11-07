@@ -93,21 +93,30 @@ ZOO_PERCHES = {
     "Forest": ((4, 25), (10, 25), (7, 24)),
 }
 
-PLAZA = (16, 13, 6, 6)
-BOOTH = (17, 14)
-BOARD = (19, 14)
-STUDIO = (18, 16)
-HAY = (21, 17)
 # The exit warps sit on the gate tiles in the bottom hedge row. Vanilla drops a player entering a building one tile above
 # warps[0], so the player arrives on the loop path (ENTRANCE) rather than in the hedge row with hedges on both sides.
 WARP_TILES = ((18, 29), (19, 29))
 ENTRANCE = (18, 28)
 PRODUCE_AREA = (13, 13, 2, 5)
 
+# Multi-tile props are placed by their top-left tile; the Action tile is on the bottom (counter) row.
+# The ticket booth stands on the lawn just right of the centre avenue, its counter facing the gate across a paved
+# queue apron, so it's the first thing a player sees on arrival. Board and studio stay on the plaza's north edge.
+BOOTH_ORIGIN = (20, 23)          # 3x4
+BOOTH = (21, 26)
+BOOTH_APRON = (20, 27, 3, 1)     # where visitors queue and the player stands to buy tickets
+BOOTH_FRONT = (21, 27)
+BOARD_ORIGIN = (15, 11)          # 3x4
+BOARD = (16, 14)
+STUDIO_ORIGIN = (21, 13)         # 2x2, with a speaker on its left and a mic on its right
+STUDIO = (21, 14)
+HAY = (21, 17)
+
 # Park paths (x, y, w, h): the loop (four rows joined by the side columns) must stay clear end to end; the centre
-# avenue and plaza carry the plaza props; door spurs connect each facade door to the loop.
+# avenue, plaza and booth apron are open paving; door spurs connect each facade door to the loop.
 LOOP_PATHS = [(1, 1, 36, 1), (1, 11, 36, 1), (1, 21, 36, 1), (1, 28, 36, 1), (1, 1, 1, 28), (36, 1, 1, 28)]
-PATHS = LOOP_PATHS + [(18, 1, 2, 29), (14, 12, 10, 9)] + [(outside_arrival(n)[0], outside_arrival(n)[1], 1, 1) for n in PAVILIONS]
+PATHS = (LOOP_PATHS + [(18, 1, 2, 29), (14, 12, 10, 9), BOOTH_APRON]
+         + [(outside_arrival(n)[0], outside_arrival(n)[1], 1, 1) for n in PAVILIONS])
 
 
 def _visit(name):
@@ -125,7 +134,7 @@ def _walk(*pts):
 
 VISITOR_ROUTE = (
     [("walk", ENTRANCE)]
-    + _walk((1, 28), (1, 21), (1, 11), (1, 1), (18, 1), (36, 1), (36, 11), (30, 11))
+    + _walk(BOOTH_FRONT, (1, 28), (1, 21), (1, 11), (1, 1), (18, 1), (36, 1), (36, 11), (30, 11))
     + _visit("Water")
     + _walk((18, 11), (7, 11))
     + _visit("Ice")

@@ -26,13 +26,19 @@ import make_pavilions
 from draw_pavilions import build_pavilion_objects, extend_blender
 from draw_tiles import OUT as ZOO_PNG
 from draw_tiles import PRIORITY, WATERY, TerrainBlender, ZooSheet, build_objects, hnoise, save_preview
-from zoo_layout import (BOARD, BOOTH, FACADES, HABITATS, HAY, MAP_H, MAP_W, OPEN_PENS, OUTDOOR, PATHS, PAVILIONS,
-                        PRODUCE_AREA, REGIONS, STUDIO, WARP_TILES, ZOO_PERCHES, facade_door, inside_door,
-                        write_csharp)
+from zoo_layout import (BOARD, BOARD_ORIGIN, BOOTH, BOOTH_ORIGIN, ENTRANCE, FACADES, HABITATS, HAY, MAP_H, MAP_W,
+                        OPEN_PENS, OUTDOOR, PATHS, PAVILIONS, PRODUCE_AREA, REGIONS, STUDIO, STUDIO_ORIGIN, WALL_ROWS,
+                        WARP_TILES, ZOO_PERCHES, facade_door, inside_door, write_csharp)
 
 ROOT = Path(__file__).resolve().parent.parent
 ASSETS = ROOT / "[CP] Stardew Zoo" / "assets"
 LAYERS = ("Back", "Buildings", "Front", "AlwaysFront")
+
+# GameLocation.setUpLocationSpecificFlair reads AmbientLight (white means "no darkening") and fades to
+# AmbientNightLight over the two hours before dark. The colour is subtracted from the scene: vanilla houses use
+# 150 150 30 and the town at night is about 237 237 0, so this is a dusky park where lamps visibly glow.
+DAY_LIGHT = "255 255 255"
+NIGHT_LIGHT = "170 170 50"
 
 PERCH_HEIGHT = {"palm": 3, "oak": 4, "snag": 2.5}
 TOUCH_ACTION = "StardewZoo_Pavilion"
@@ -73,10 +79,6 @@ FENCE_BR = (930, None)
 FENCE_BOTTOM = (929, 897)
 FENCE_GATE_L = (899, 867)
 FENCE_GATE_R = (900, 868)
-
-# spring_town street lamp (Town.tmx 24,50-53): Buildings base, Front post/head above.
-LAMP_BASE, LAMP_POST, LAMP_MID, LAMP_HEAD = 1003, 971, 939, 907
-
 # spring_outdoorsTileSheet oak trees: 3x4 canopy, trunk, root base.
 OAK_A = ((0, 1, 2), (25, 26, 27), (50, 51, 52), (75, 76, 77), 101, 126)
 OAK_B = ((3, 4, 5), (28, 29, 30), (53, 54, 55), (78, 79, 80), 104, 129)
@@ -166,7 +168,6 @@ class ZooMap:
         self.zs = zs
         self.cells = {n: [[[] for _ in range(MAP_W)] for _ in range(MAP_H)] for n in LAYERS}
         self.used = set()
-        self.lamps = []
 
     def put(self, layer, x, y, comp):
         if not (0 <= x < MAP_W and 0 <= y < MAP_H) or comp is None:
@@ -215,18 +216,6 @@ class ZooMap:
         self.put("Front", x, y - 1, I(trunk))
         self.put("Back", x, y, I(base))
         self.used.update({(x, y), (x, y - 1)})
-
-    def town_lamp(self, x, y):
-        self.put("Buildings", x, y, T(LAMP_BASE))
-        self.put("Front", x, y - 1, T(LAMP_POST))
-        self.put("Front", x, y - 2, T(LAMP_MID))
-        self.put("Front", x, y - 3, T(LAMP_HEAD))
-        self.lamps.append((x, y - 3))
-        self.used.add((x, y))
-
-    def zoo_lamp(self, x, y):
-        self.obj("lamp", x, y - 2, ["Front", "Front", "Buildings"])
-        self.lamps.append((x, y - 2))
 
     # --- resolve to gids ---
     def resolve(self):
@@ -329,85 +318,45 @@ def pens(m, rng):
     make_pavilions.interiors(m, rng, scatter, FERNS, I)
 
 
-def strips(m):
-    """Park furniture on the grass strips between pens and the loop path."""
-    for row, (left_pen, right_pen) in ((10, ("Ice", "Water")), (20, ("Savanna", "Jungle")),
-                                       (27, ("Forest", "Prehistoric"))):
-        m.obj(f"plaque_{left_pen}", 6, row, "Buildings")
-        m.obj(f"plaque_{right_pen}", 29, row, "Buildings")
-        if row != 20:  # the forest oaks overhang the row-20 strip on the left
-            m.zoo_lamp(3, row)
-            m.obj("bin", 5, row, "Buildings")
-            m.obj("planter_red", 10, row, "Buildings")
-        m.zoo_lamp(12, row)
-        m.zoo_lamp(25, row)
-        m.obj("planter_yellow", 27, row, "Buildings")
-        m.obj("bin_recycle", 32, row, "Buildings")
-        m.zoo_lamp(34, row)
-
-
-def lawns(m):
-    # top lawns: carts, shade trees, benches facing the path, a signpost
-    m.obj("snack_cart", 16, 2, ["Front", "Buildings"])
-    m.obj("icecream_cart", 20, 2, ["Front", "Buildings"])
+def lawns(m, rng):
+    """Shade trees and grass tufts only: benches, lamps, carts and signs are furniture the player buys and places."""
     m.oak(14, 8, OAK_A, in_pen=False)
     m.oak(23, 8, OAK_B, in_pen=False)
-    m.zoo_lamp(17, 7)
-    m.zoo_lamp(20, 7)
-    m.obj("bench", 13, 10, "Buildings")
-    m.obj("bench", 23, 10, "Buildings")
-    m.obj("bin", 16, 10, "Buildings")
-    m.obj("bin_recycle", 21, 10, "Buildings")
-    m.obj("sign_Ice_Water", 17, 9, ["Front", "Buildings"])
-    m.obj("balloons", 16, 5, ["Front", "Buildings"])
-    m.obj("planter_pink", 24, 9, "Buildings")
-    m.obj("planter_pink", 13, 9, "Buildings")
-    m.obj("planter_blue", 13, 2, "Buildings")
-    m.obj("planter_blue", 24, 2, "Buildings")
-
-    # middle columns beside the plaza
-    m.obj("planter_pink", 13, 12, "Buildings")
-    m.obj("planter_pink", 24, 12, "Buildings")
-    m.obj("bin", 24, 16, "Buildings")
-    m.zoo_lamp(24, 20)
-    m.obj("sign_Savanna_Jungle", 13, 18, ["Front", "Buildings"])
-
-    # bottom lawns: entrance arch, trees, benches, ice cream
-    m.obj("arch", 17, 25, ["AlwaysFront", "AlwaysFront", "Buildings"])
     m.oak(14, 26, OAK_B, in_pen=False)
-    m.oak(23, 26, OAK_A, in_pen=False)
-    m.obj("sign_Forest_Prehistoric", 17, 22, ["Front", "Buildings"])
-    m.obj("icecream_cart", 20, 22, ["Front", "Buildings"])
-    m.obj("balloons", 21, 25, ["Front", "Buildings"])
-    m.zoo_lamp(16, 25)
-    m.obj("bench", 15, 27, "Buildings")
-    m.obj("bench", 21, 27, "Buildings")
-    m.obj("planter_yellow", 13, 27, "Buildings")
-    m.obj("planter_yellow", 24, 27, "Buildings")
-
-    # beside the ice pavilion (the old pen fence ring)
-    for y in (3, 6, 9):
-        m.obj("planter_blue", 2, y, "Buildings")
-        m.obj("planter_blue", 12, y, "Buildings")
+    pens = set().union(*({(cx, cy) for cy in range(y - 1, y + h + 1) for cx in range(x - 1, x + w + 1)}
+                         for x, y, w, h in OPEN_PENS.values()))
+    ox, oy, ow, oh = OUTDOOR
+    spots = [(x, y) for y in range(oy + 1, oy + oh - 1) for x in range(ox + 1, ox + ow - 1)
+             if m.terrain[y][x] == "g" and (x, y) not in m.used and (x, y) not in pens
+             and not m.cells["Buildings"][y][x] and all(c == "g" for c in m.corners[y][x])]
+    rng.shuffle(spots)
+    tufts = ["grass_tuft", "grass_tuft", "tuft_a", "tuft_b"]
+    for i, (x, y) in enumerate(spots[:len(spots) // 7]):
+        m.put("Back", x, y, m.tid(tufts[i % len(tufts)]))
 
 
 def plaza(m):
-    # booth / board / studio: bottom rows on Buildings carry the Action tiles
-    m.obj("booth", 16, 11, ["Front", "Front", "Front", "Buildings"])
-    m.obj("board", 19, 11, ["Front", "Front", "Front", "Buildings"])
-    m.obj("speaker", 17, 15, ["Front", "Buildings"])
-    m.obj("studio", 18, 15, ["Front", "Buildings"])
-    m.obj("mic", 20, 15, ["Front", "Buildings"])
-    m.obj("fountain", 18, 18, "Buildings")
-    m.obj("bench", 15, 19, "Buildings")
-    m.obj("bench", 21, 19, "Buildings")
-    for x, y, kind in ((15, 14, "planter_yellow"), (22, 14, "planter_yellow"),
-                       (15, 17, "planter_red"), (22, 17, "planter_red")):
-        m.obj(kind, x, y, "Buildings")
-    m.obj("bin", 14, 19, "Buildings")
-    m.obj("bin_recycle", 23, 19, "Buildings")
-    m.town_lamp(15, 12)
-    m.town_lamp(22, 12)
+    """The working props: booth at the entrance, board and studio on the plaza. Bottom rows carry the Action tiles."""
+    m.obj("booth", *BOOTH_ORIGIN, ["Front", "Front", "Front", "Buildings"])
+    m.obj("board", *BOARD_ORIGIN, ["Front", "Front", "Front", "Buildings"])
+    sx, sy = STUDIO_ORIGIN
+    m.obj("speaker", sx - 1, sy, ["Front", "Buildings"])
+    m.obj("studio", sx, sy, ["Front", "Buildings"])
+    m.obj("mic", sx + 2, sy, ["Front", "Buildings"])
+
+
+def map_lights():
+    """Always-on map lights: the entrance and working props in the park, and a lit ring in every pavilion hall.
+    The park itself darkens at night (AmbientNightLight), so player-placed lamps glow."""
+    bx, by = BOOTH_ORIGIN
+    lights = [ENTRANCE, (bx + 1, by + 1), (BOARD_ORIGIN[0] + 1, BOARD_ORIGIN[1] + 1), STUDIO_ORIGIN]
+    for name, (x, y, w, h) in REGIONS.items():
+        top, bottom = y + WALL_ROWS, y + h - 2
+        for lx in range(x + 2, x + w - 1, 4):
+            lights += [(lx, top), (lx, bottom)]
+        for ly in range(top + 4, bottom - 1, 4):
+            lights += [(x + 1, ly), (x + w - 2, ly)]
+    return lights
 
 
 def action_tiles(zs):
@@ -450,8 +399,7 @@ def build(zs):
     fences(m)
     plaza(m)
     pens(m, rng)
-    strips(m)
-    lawns(m)
+    lawns(m, rng)
 
     m.cells["Buildings"][HAY[1]][HAY[0]] = []
     return m
@@ -514,7 +462,7 @@ def write_tmx(zs, m, resolved):
             f"  </tileset>")
 
     warp = " ".join(f"{x} {y} Farm 0 0" for x, y in WARP_TILES)
-    lights = " ".join(f"{x} {y} 4" for x, y in m.lamps) + " 18 28 4"
+    lights = " ".join(f"{x} {y} 4" for x, y in map_lights())
     produce = " ".join(str(v) for v in PRODUCE_AREA)
 
     perch_objs = []
@@ -547,7 +495,8 @@ def write_tmx(zs, m, resolved):
     xml = f"""<?xml version="1.0"?>
 <map version="1.4" tiledversion="1.4.2" orientation="orthogonal" renderorder="right-down" compressionlevel="0" width="{MAP_W}" height="{MAP_H}" tilewidth="16" tileheight="16" infinite="0" nextlayerid="10" nextobjectid="{oid}">
   <properties>
-    <property name="AmbientLight" type="string" value="255 255 255" />
+    <property name="AmbientLight" type="string" value="{DAY_LIGHT}" />
+    <property name="AmbientNightLight" type="string" value="{NIGHT_LIGHT}" />
     <property name="Light" type="string" value="{lights}" />
     <property name="ProduceArea" type="string" value="{produce}" />
     <property name="StardewZooLocation" type="string" value="T" />
