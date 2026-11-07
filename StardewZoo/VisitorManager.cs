@@ -115,7 +115,7 @@ internal sealed class VisitorManager
     {
         string asset = PickTexture(location);
         var sprite = new AnimatedSprite(asset, 0, 16, 32);
-        var npc = new NPC(sprite, new Vector2(18 * Game1.tileSize, 28 * Game1.tileSize), 0, NamePrefix + this.nextId)
+        var npc = new NPC(sprite, VisitorTour.StartPosition, 0, NamePrefix + this.nextId)
         {
             Breather = false,
             HideShadow = false,
@@ -150,13 +150,14 @@ internal sealed class VisitorManager
 
     private void WalkLoop(NPC npc, GameLocation location, int waypoint)
     {
-        if (waypoint >= ZooHabitats.VisitorLoop.Count)
+        waypoint = VisitorTour.ThroughDoors(npc, location, waypoint);
+        if (waypoint >= VisitorTour.Count)
         {
             this.BeginLeaving(npc, location);
             return;
         }
 
-        (int x, int y) = ZooHabitats.VisitorLoop[waypoint];
+        (int x, int y) = VisitorTour.Target(waypoint);
         npc.controller = new PathFindController(
             npc,
             location,

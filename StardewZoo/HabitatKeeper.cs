@@ -55,7 +55,7 @@ internal static class HabitatKeeper
     private static void Snap(AnimalHouse house, FarmAnimal animal, Random rng, bool force)
     {
         HabitatRect? pen = ZooHabitats.ForAnimal(animal.type.Value);
-        if (pen is not HabitatRect habitat)
+        if (pen is not HabitatRect habitat || !FitsMap(house, habitat))
             return;
 
         int tileX = animal.TilePoint.X;
@@ -67,6 +67,13 @@ internal static class HabitatKeeper
         animal.controller = null;
         SetGroundCenter(animal, x * Game1.tileSize + Game1.tileSize / 2, y * Game1.tileSize + Game1.tileSize / 2);
         animal.noWarpTimer = 3000;
+    }
+
+    /// <summary>Whether the location's map contains the pen (false while an older, smaller zoo map is loaded).</summary>
+    public static bool FitsMap(GameLocation location, HabitatRect pen)
+    {
+        xTile.Layers.Layer? back = location.Map?.GetLayer("Back");
+        return back != null && pen.X + pen.Width <= back.LayerWidth && pen.Y + pen.Height <= back.LayerHeight;
     }
 
     /// <summary>

@@ -102,7 +102,8 @@ internal sealed class AnimalMovement
         foreach (FarmAnimal animal in house.animals.Values)
         {
             string? type = animal.type.Value;
-            if (type?.StartsWith(AnimalTypePrefix, StringComparison.Ordinal) != true || ZooHabitats.ForAnimal(type) is not HabitatRect pen)
+            if (type?.StartsWith(AnimalTypePrefix, StringComparison.Ordinal) != true || ZooHabitats.ForAnimal(type) is not HabitatRect pen
+                || !HabitatKeeper.FitsMap(house, pen))
                 continue;
 
             MoveProfile profile = MoveProfiles.For(type);

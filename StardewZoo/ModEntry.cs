@@ -24,6 +24,7 @@ internal sealed class ModEntry : Mod
         new AnimalCallHandler(helper, this.config);
         new AnimalMovement(helper, this.config);
         new ZooFurniture(helper, this.Monitor);
+        new PavilionManager(helper, this.Monitor);
 
         helper.Events.GameLoop.GameLaunched += this.OnGameLaunched;
         helper.Events.GameLoop.SaveLoaded += this.OnSaveLoaded;
