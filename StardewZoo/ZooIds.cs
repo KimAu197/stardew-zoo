@@ -32,6 +32,9 @@ public static class ZooIds
     public const string ReviewAction = "StardewZoo_ReviewBoard";
     public const string StudioAction = "StardewZoo_RecordingStudio";
 
+    /// <summary>Qualified item ID prefix of the zoo furniture in Data/Furniture.</summary>
+    public const string FurniturePrefix = "(F)StardewZoo.";
+
     public static readonly IReadOnlyList<string> BuildingTypes = new[] { Zoo, BigZoo, DeluxeZoo };
 
     public static readonly IReadOnlyList<string> AnimalTypes = new[]

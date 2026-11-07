@@ -47,6 +47,20 @@ internal sealed class ZooFurniture
             AccessTools.Method(typeof(Furniture), nameof(Furniture.canBePlacedHere)),
             postfix: new HarmonyMethod(typeof(ZooFurniture), nameof(After_CanBePlacedHere))
         );
+        harmony.Patch(
+            AccessTools.Method(typeof(Furniture), "loadDescription"),
+            postfix: new HarmonyMethod(typeof(ZooFurniture), nameof(After_LoadDescription))
+        );
+    }
+
+    /// <summary>Data/Furniture has no description field, so vanilla shows a generic placement line for every piece.</summary>
+    private static void After_LoadDescription(Furniture __instance, ref string __result)
+    {
+        if (instance == null || !__instance.QualifiedItemId.StartsWith(ZooIds.FurniturePrefix, StringComparison.Ordinal))
+            return;
+        Translation text = instance.translation.Get($"furniture.{__instance.QualifiedItemId[ZooIds.FurniturePrefix.Length..]}.description");
+        if (text.HasValue())
+            __result = text;
     }
 
     /// <summary>Furniture pieces in a location, for the zoo decor bonus.</summary>

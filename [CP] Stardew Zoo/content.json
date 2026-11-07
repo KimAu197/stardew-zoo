@@ -1139,7 +1139,29 @@
         "StardewZoo.ZooSign": "StardewZoo.ZooSign/decor/2 2/2 1/1/800/2/{{i18n:furniture.ZooSign.name}}/3/Mods/StardewZoo/Furniture/false",
         "StardewZoo.BalloonStand": "StardewZoo.BalloonStand/decor/1 2/1 1/1/1200/2/{{i18n:furniture.BalloonStand.name}}/5/Mods/StardewZoo/Furniture/false",
         "StardewZoo.TrashBin": "StardewZoo.TrashBin/decor/1 2/1 1/1/250/2/{{i18n:furniture.TrashBin.name}}/6/Mods/StardewZoo/Furniture/false",
-        "StardewZoo.PottedPalm": "StardewZoo.PottedPalm/decor/1 2/1 1/1/900/2/{{i18n:furniture.PottedPalm.name}}/7/Mods/StardewZoo/Furniture/false"
+        "StardewZoo.PottedPalm": "StardewZoo.PottedPalm/decor/1 2/1 1/1/900/2/{{i18n:furniture.PottedPalm.name}}/7/Mods/StardewZoo/Furniture/false",
+        "StardewZoo.ParkBench": "StardewZoo.ParkBench/bench/2 1/2 1/1/500/2/{{i18n:furniture.ParkBench.name}}/8/Mods/StardewZoo/Furniture/false",
+        "StardewZoo.PlanterRed": "StardewZoo.PlanterRed/decor/1 1/1 1/1/300/2/{{i18n:furniture.PlanterRed.name}}/10/Mods/StardewZoo/Furniture/false",
+        "StardewZoo.PlanterYellow": "StardewZoo.PlanterYellow/decor/1 1/1 1/1/300/2/{{i18n:furniture.PlanterYellow.name}}/11/Mods/StardewZoo/Furniture/false",
+        "StardewZoo.PlanterPink": "StardewZoo.PlanterPink/decor/1 1/1 1/1/300/2/{{i18n:furniture.PlanterPink.name}}/12/Mods/StardewZoo/Furniture/false",
+        "StardewZoo.PlanterBlue": "StardewZoo.PlanterBlue/decor/1 1/1 1/1/300/2/{{i18n:furniture.PlanterBlue.name}}/13/Mods/StardewZoo/Furniture/false",
+        "StardewZoo.FernPot": "StardewZoo.FernPot/decor/1 1/1 1/1/350/2/{{i18n:furniture.FernPot.name}}/14/Mods/StardewZoo/Furniture/false",
+        "StardewZoo.ZooLampPost": "StardewZoo.ZooLampPost/lamp/1 3/1 1/1/1500/2/{{i18n:furniture.ZooLampPost.name}}/24/Mods/StardewZoo/Furniture/false",
+        "StardewZoo.RecyclingBin": "StardewZoo.RecyclingBin/decor/1 1/1 1/1/250/2/{{i18n:furniture.RecyclingBin.name}}/15/Mods/StardewZoo/Furniture/false",
+        "StardewZoo.SnackCart": "StardewZoo.SnackCart/decor/2 2/2 1/1/2500/2/{{i18n:furniture.SnackCart.name}}/26/Mods/StardewZoo/Furniture/false",
+        "StardewZoo.IceCreamCart": "StardewZoo.IceCreamCart/decor/2 2/2 1/1/2500/2/{{i18n:furniture.IceCreamCart.name}}/28/Mods/StardewZoo/Furniture/false",
+        "StardewZoo.SignpostIceWater": "StardewZoo.SignpostIceWater/decor/1 2/1 1/1/600/2/{{i18n:furniture.SignpostIceWater.name}}/30/Mods/StardewZoo/Furniture/false",
+        "StardewZoo.SignpostSavannaJungle": "StardewZoo.SignpostSavannaJungle/decor/1 2/1 1/1/600/2/{{i18n:furniture.SignpostSavannaJungle.name}}/31/Mods/StardewZoo/Furniture/false",
+        "StardewZoo.SignpostForestPrehistoric": "StardewZoo.SignpostForestPrehistoric/decor/1 2/1 1/1/600/2/{{i18n:furniture.SignpostForestPrehistoric.name}}/32/Mods/StardewZoo/Furniture/false",
+        "StardewZoo.PlaqueIce": "StardewZoo.PlaqueIce/decor/1 1/1 1/1/400/2/{{i18n:furniture.PlaqueIce.name}}/33/Mods/StardewZoo/Furniture/false",
+        "StardewZoo.PlaqueWater": "StardewZoo.PlaqueWater/decor/1 1/1 1/1/400/2/{{i18n:furniture.PlaqueWater.name}}/34/Mods/StardewZoo/Furniture/false",
+        "StardewZoo.PlaqueSavanna": "StardewZoo.PlaqueSavanna/decor/1 1/1 1/1/400/2/{{i18n:furniture.PlaqueSavanna.name}}/35/Mods/StardewZoo/Furniture/false",
+        "StardewZoo.PlaqueJungle": "StardewZoo.PlaqueJungle/decor/1 1/1 1/1/400/2/{{i18n:furniture.PlaqueJungle.name}}/36/Mods/StardewZoo/Furniture/false",
+        "StardewZoo.PlaqueForest": "StardewZoo.PlaqueForest/decor/1 1/1 1/1/400/2/{{i18n:furniture.PlaqueForest.name}}/37/Mods/StardewZoo/Furniture/false",
+        "StardewZoo.PlaquePrehistoric": "StardewZoo.PlaquePrehistoric/decor/1 1/1 1/1/400/2/{{i18n:furniture.PlaquePrehistoric.name}}/38/Mods/StardewZoo/Furniture/false",
+        "StardewZoo.Turnstile": "StardewZoo.Turnstile/decor/1 2/1 1/1/750/2/{{i18n:furniture.Turnstile.name}}/39/Mods/StardewZoo/Furniture/false",
+        "StardewZoo.ZooArch": "StardewZoo.ZooArch/decor/4 3/4 1/1/4000/2/{{i18n:furniture.ZooArch.name}}/49/Mods/StardewZoo/Furniture/false",
+        "StardewZoo.Fountain": "StardewZoo.Fountain/decor/3 3/3 2/1/5000/2/{{i18n:furniture.Fountain.name}}/58/Mods/StardewZoo/Furniture/false"
       }
     },
     {
@@ -1180,6 +1202,116 @@
           "Id": "StardewZoo.PottedPalm",
           "ItemId": "(F)StardewZoo.PottedPalm",
           "Price": 900
+        },
+        "StardewZoo.ParkBench": {
+          "Id": "StardewZoo.ParkBench",
+          "ItemId": "(F)StardewZoo.ParkBench",
+          "Price": 500
+        },
+        "StardewZoo.PlanterRed": {
+          "Id": "StardewZoo.PlanterRed",
+          "ItemId": "(F)StardewZoo.PlanterRed",
+          "Price": 300
+        },
+        "StardewZoo.PlanterYellow": {
+          "Id": "StardewZoo.PlanterYellow",
+          "ItemId": "(F)StardewZoo.PlanterYellow",
+          "Price": 300
+        },
+        "StardewZoo.PlanterPink": {
+          "Id": "StardewZoo.PlanterPink",
+          "ItemId": "(F)StardewZoo.PlanterPink",
+          "Price": 300
+        },
+        "StardewZoo.PlanterBlue": {
+          "Id": "StardewZoo.PlanterBlue",
+          "ItemId": "(F)StardewZoo.PlanterBlue",
+          "Price": 300
+        },
+        "StardewZoo.FernPot": {
+          "Id": "StardewZoo.FernPot",
+          "ItemId": "(F)StardewZoo.FernPot",
+          "Price": 350
+        },
+        "StardewZoo.ZooLampPost": {
+          "Id": "StardewZoo.ZooLampPost",
+          "ItemId": "(F)StardewZoo.ZooLampPost",
+          "Price": 1500
+        },
+        "StardewZoo.RecyclingBin": {
+          "Id": "StardewZoo.RecyclingBin",
+          "ItemId": "(F)StardewZoo.RecyclingBin",
+          "Price": 250
+        },
+        "StardewZoo.SnackCart": {
+          "Id": "StardewZoo.SnackCart",
+          "ItemId": "(F)StardewZoo.SnackCart",
+          "Price": 2500
+        },
+        "StardewZoo.IceCreamCart": {
+          "Id": "StardewZoo.IceCreamCart",
+          "ItemId": "(F)StardewZoo.IceCreamCart",
+          "Price": 2500
+        },
+        "StardewZoo.SignpostIceWater": {
+          "Id": "StardewZoo.SignpostIceWater",
+          "ItemId": "(F)StardewZoo.SignpostIceWater",
+          "Price": 600
+        },
+        "StardewZoo.SignpostSavannaJungle": {
+          "Id": "StardewZoo.SignpostSavannaJungle",
+          "ItemId": "(F)StardewZoo.SignpostSavannaJungle",
+          "Price": 600
+        },
+        "StardewZoo.SignpostForestPrehistoric": {
+          "Id": "StardewZoo.SignpostForestPrehistoric",
+          "ItemId": "(F)StardewZoo.SignpostForestPrehistoric",
+          "Price": 600
+        },
+        "StardewZoo.PlaqueIce": {
+          "Id": "StardewZoo.PlaqueIce",
+          "ItemId": "(F)StardewZoo.PlaqueIce",
+          "Price": 400
+        },
+        "StardewZoo.PlaqueWater": {
+          "Id": "StardewZoo.PlaqueWater",
+          "ItemId": "(F)StardewZoo.PlaqueWater",
+          "Price": 400
+        },
+        "StardewZoo.PlaqueSavanna": {
+          "Id": "StardewZoo.PlaqueSavanna",
+          "ItemId": "(F)StardewZoo.PlaqueSavanna",
+          "Price": 400
+        },
+        "StardewZoo.PlaqueJungle": {
+          "Id": "StardewZoo.PlaqueJungle",
+          "ItemId": "(F)StardewZoo.PlaqueJungle",
+          "Price": 400
+        },
+        "StardewZoo.PlaqueForest": {
+          "Id": "StardewZoo.PlaqueForest",
+          "ItemId": "(F)StardewZoo.PlaqueForest",
+          "Price": 400
+        },
+        "StardewZoo.PlaquePrehistoric": {
+          "Id": "StardewZoo.PlaquePrehistoric",
+          "ItemId": "(F)StardewZoo.PlaquePrehistoric",
+          "Price": 400
+        },
+        "StardewZoo.Turnstile": {
+          "Id": "StardewZoo.Turnstile",
+          "ItemId": "(F)StardewZoo.Turnstile",
+          "Price": 750
+        },
+        "StardewZoo.ZooArch": {
+          "Id": "StardewZoo.ZooArch",
+          "ItemId": "(F)StardewZoo.ZooArch",
+          "Price": 4000
+        },
+        "StardewZoo.Fountain": {
+          "Id": "StardewZoo.Fountain",
+          "ItemId": "(F)StardewZoo.Fountain",
+          "Price": 5000
         }
       }
     }

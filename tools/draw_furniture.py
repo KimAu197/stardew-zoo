@@ -1,8 +1,13 @@
 """Draw the zoo furniture sheet and describe the items for content.json.
 
-The sheet is 16px cells, 8 per row; a sprite index addresses its top-left cell (vanilla
+The sheet is 16px cells, 16 per row; a sprite index addresses its top-left cell (vanilla
 Furniture uses index * 16 % width, index * 16 / width * 16). Each sprite is bottom-aligned
 over its footprint: a 1x2 sprite with a 1x1 bounding box stands on its bottom cell.
+Lamps draw their lit sprite one sprite-width to the right of the unlit one (vanilla sourceIndexOffset).
+
+The park decor that used to be baked into the zoo map (benches, planters, lamps, bins, carts,
+signposts, plaques, fountain, arch) is drawn by draw_tiles / draw_pavilions and rendered here,
+so the player buys and places it like any other furniture.
 
 Usage: python3 tools/draw_furniture.py
 """
@@ -10,23 +15,85 @@ Usage: python3 tools/draw_furniture.py
 import math
 from pathlib import Path
 
-from PIL import Image
+from PIL import Image, ImageDraw
+
+import draw_tiles as dt
+from draw_pavilions import draw_fern_pot
 
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "[CP] Stardew Zoo" / "assets" / "Furniture.png"
 PREVIEW = Path(__file__).resolve().parent / "previews" / "furniture.png"
 TEXTURE = "Mods/StardewZoo/Furniture"
-SHEET_W, SHEET_H = 128, 32
+SHEET_COLS = 16
+SHEET_W = SHEET_COLS * 16
+BIOMES = ("Ice", "Water", "Savanna", "Jungle", "Forest", "Prehistoric")
+SIGNPOSTS = (("Ice", "Water"), ("Savanna", "Jungle"), ("Forest", "Prehistoric"))
+PLANTERS = {
+    "Red": ("#c23b22", "#ff8a6a"), "Yellow": ("#c98a16", "#ffe58a"),
+    "Pink": ("#b0407a", "#ffb3cf"), "Blue": ("#3a5fc8", "#a9c8ff"),
+}
 
-# key, vanilla type, sprite size (tiles), bounding box (tiles), sprite index, price
+# The first six shipped on an 8-wide sheet; their cells (top-left 8x2 block) keep the same pixels on the wider sheet.
+FIXED_INDEX = {"Bench": 0, "PenguinStatue": 2, "ZooSign": 3, "BalloonStand": 5, "TrashBin": 6, "PottedPalm": 7}
+
+# key, vanilla type, sprite size (tiles), bounding box (tiles), price
 ITEMS = [
-    ("Bench", "bench", (2, 2), (2, 1), 0, 650),
-    ("PenguinStatue", "decor", (1, 2), (1, 1), 2, 2500),
-    ("ZooSign", "decor", (2, 2), (2, 1), 3, 800),
-    ("BalloonStand", "decor", (1, 2), (1, 1), 5, 1200),
-    ("TrashBin", "decor", (1, 2), (1, 1), 6, 250),
-    ("PottedPalm", "decor", (1, 2), (1, 1), 7, 900),
+    ("Bench", "bench", (2, 2), (2, 1), 650),
+    ("PenguinStatue", "decor", (1, 2), (1, 1), 2500),
+    ("ZooSign", "decor", (2, 2), (2, 1), 800),
+    ("BalloonStand", "decor", (1, 2), (1, 1), 1200),
+    ("TrashBin", "decor", (1, 2), (1, 1), 250),
+    ("PottedPalm", "decor", (1, 2), (1, 1), 900),
+    ("ParkBench", "bench", (2, 1), (2, 1), 500),
+    *[(f"Planter{c}", "decor", (1, 1), (1, 1), 300) for c in PLANTERS],
+    ("FernPot", "decor", (1, 1), (1, 1), 350),
+    ("ZooLampPost", "lamp", (1, 3), (1, 1), 1500),
+    ("RecyclingBin", "decor", (1, 1), (1, 1), 250),
+    ("SnackCart", "decor", (2, 2), (2, 1), 2500),
+    ("IceCreamCart", "decor", (2, 2), (2, 1), 2500),
+    *[(f"Signpost{a}{b}", "decor", (1, 2), (1, 1), 600) for a, b in SIGNPOSTS],
+    *[(f"Plaque{b}", "decor", (1, 1), (1, 1), 400) for b in BIOMES],
+    ("Turnstile", "decor", (1, 2), (1, 1), 750),
+    ("ZooArch", "decor", (4, 3), (4, 1), 4000),
+    ("Fountain", "decor", (3, 3), (3, 2), 5000),
 ]
+
+
+def sprite_frames(kind):
+    """Lamps carry a second (lit) sprite to the right of the unlit one."""
+    return 2 if kind == "lamp" else 1
+
+
+def layout():
+    """key -> sprite index. Fixed items keep their cells; the rest are packed row by row into free cells."""
+    taken = set()
+
+    def free(col, row, w, h):
+        return col + w <= SHEET_COLS and all((col + c, row + r) not in taken for r in range(h) for c in range(w))
+
+    def claim(col, row, w, h):
+        taken.update((col + c, row + r) for r in range(h) for c in range(w))
+
+    out = {}
+    for key, kind, (sw, sh), _, _ in ITEMS:
+        if key in FIXED_INDEX:
+            index = FIXED_INDEX[key]
+            claim(index % SHEET_COLS, index // SHEET_COLS, sw * sprite_frames(kind), sh)
+            out[key] = index
+    for key, kind, (sw, sh), _, _ in ITEMS:
+        if key in out:
+            continue
+        w = sw * sprite_frames(kind)
+        row = 0
+        while True:
+            col = next((c for c in range(SHEET_COLS) if free(c, row, w, sh)), None)
+            if col is not None:
+                break
+            row += 1
+        claim(col, row, w, sh)
+        out[key] = row * SHEET_COLS + col
+    rows = 1 + max(r for _, r in taken)
+    return out, rows
 
 
 def rgb(hex_color):
@@ -244,6 +311,70 @@ def potted_palm():
     return s
 
 
+def lamp_post(lit):
+    """The zoo map's iron lamp post; unlit glass by day, a warm lantern with a soft halo when on."""
+    im = dt.draw_lamp()
+    px = im.load()
+    glass, glint = dt.C("#ffe89a"), (255, 255, 230, 255)
+    for y in range(im.height):
+        for x in range(im.width):
+            if px[x, y] == glass:
+                px[x, y] = dt.C("#ffe066") if lit else dt.C("#9aa6a0")
+            elif px[x, y] == glint:
+                px[x, y] = (255, 255, 240, 255) if lit else dt.C("#c4ccc8")
+    if lit:
+        halo = Image.new("RGBA", im.size, (0, 0, 0, 0))
+        ImageDraw.Draw(halo).ellipse((0, 0, 15, 14), fill=(255, 236, 140, 70))
+        halo.alpha_composite(im)
+        im = halo
+    return im
+
+
+def big_fountain():
+    """3x3 tiered fountain in the map fountain's style: stone basin, pedestal, upper bowl and jet."""
+    im = dt.canvas(3, 3)
+    d = ImageDraw.Draw(im)
+    rock, water = dt.ROCK, dt.WATER
+    dt.shade(im, lambda m: m.ellipse((1, 21, 46, 47), fill=255), rock)
+    d.ellipse((5, 25, 42, 42), fill=water[1])
+    d.ellipse((6, 26, 41, 41), fill=water[2])
+    d.arc((6, 26, 41, 41), 200, 340, fill=water[4])
+    for i in range(10):
+        a = math.radians(i * 36 + 10)
+        d.point((24 + round(13 * math.cos(a)), 34 + round(5 * math.sin(a))), fill=water[4])
+    d.line((5, 43, 42, 43), fill=rock[2])
+    d.rectangle((20, 14, 27, 35), fill=rock[3], outline=rock[0])
+    d.line((21, 15, 21, 34), fill=rock[5])
+    dt.shade(im, lambda m: m.ellipse((11, 10, 36, 19), fill=255), rock)
+    d.ellipse((14, 11, 33, 15), fill=water[3])
+    d.line((23, 0, 23, 12), fill=water[4])
+    d.line((24, 1, 24, 12), fill=water[5])
+    for k in range(4):
+        d.point((13 - k, 17 + k * 3), fill=water[4])
+        d.point((34 + k, 17 + k * 3), fill=water[4])
+    for x in (10, 18, 30, 37):
+        d.point((x, 23 + (x % 2)), fill=water[5])
+    return im
+
+
+def turnstile():
+    """Chrome entry turnstile: a waist-high post with three arms and a green go-light."""
+    im = dt.canvas(1, 2)
+    d = ImageDraw.Draw(im)
+    rock = dt.ROCK
+    d.rectangle((5, 15, 10, 30), fill=rock[3], outline=dt.INK)
+    d.line((6, 16, 6, 29), fill=rock[5])
+    d.rectangle((4, 29, 11, 31), fill=rock[1], outline=dt.INK)
+    d.rectangle((4, 12, 11, 15), fill=rock[2], outline=dt.INK)
+    d.point((7, 13), fill=dt.C("#5cf08a"))
+    d.point((8, 13), fill=dt.C("#2b8f3e"))
+    for x0, y0, x1, y1 in ((8, 19, 15, 19), (8, 19, 3, 24), (8, 19, 3, 14)):
+        d.line((x0, y0, x1, y1), fill=rock[1], width=2)
+        d.line((x0, y0 - 1, x1, y1 - 1), fill=rock[4])
+    d.ellipse((6, 17, 10, 21), fill=rock[4], outline=dt.INK)
+    return im
+
+
 DRAWERS = {
     "Bench": bench,
     "PenguinStatue": penguin_statue,
@@ -251,12 +382,43 @@ DRAWERS = {
     "BalloonStand": balloon_stand,
     "TrashBin": trash_bin,
     "PottedPalm": potted_palm,
+    "ParkBench": dt.draw_bench,
+    **{f"Planter{c}": (lambda f=f: dt.draw_planter(f)) for c, f in PLANTERS.items()},
+    "FernPot": draw_fern_pot,
+    "ZooLampPost": lambda: [lamp_post(False), lamp_post(True)],
+    "RecyclingBin": lambda: dt.draw_bin(True),
+    "SnackCart": lambda: dt.draw_cart("snack"),
+    "IceCreamCart": lambda: dt.draw_cart("icecream"),
+    **{f"Signpost{a}{b}": (lambda a=a, b=b: dt.draw_signpost(a, b)) for a, b in SIGNPOSTS},
+    **{f"Plaque{b}": (lambda b=b: dt.draw_plaque(b)) for b in BIOMES},
+    "Turnstile": turnstile,
+    "ZooArch": dt.draw_arch,
+    "Fountain": big_fountain,
 }
+
+
+def item(key):
+    return next(entry for entry in ITEMS if entry[0] == key)
+
+
+def sprite_images(key):
+    """The item's sprite frames as RGBA images (unlit first)."""
+    drawn = DRAWERS[key]()
+    frames = drawn if isinstance(drawn, list) else [drawn]
+    out = []
+    for frame in frames:
+        if isinstance(frame, Sprite):
+            img = Image.new("RGBA", (frame.w, frame.h), (0, 0, 0, 0))
+            frame.paste(img, 0, 0)
+            frame = img
+        out.append(frame)
+    return out
 
 
 def furniture_data(key):
     """Data/Furniture string: name/type/sprite size/bounding box/rotations/price/placement/display name/index/texture."""
-    _, kind, (sw, sh), (bw, bh), index, price = next(item for item in ITEMS if item[0] == key)
+    _, kind, (sw, sh), (bw, bh), price = item(key)
+    index = layout()[0][key]
     return "/".join([
         f"StardewZoo.{key}", kind, f"{sw} {sh}", f"{bw} {bh}", "1", str(price), "2",
         f"{{{{i18n:furniture.{key}.name}}}}", str(index), TEXTURE, "false",
@@ -274,31 +436,41 @@ def content_changes():
             "Entries": {f"StardewZoo.{key}": furniture_data(key) for key, *_ in ITEMS},
         },
         {
+            # Field 10 ("false") keeps every item in the Furniture Catalogue's ALL_ITEMS (F) @isRandomSale list.
             "LogName": "Zoo furniture at Robin's",
             "Action": "EditData",
             "Target": "Data/Shops",
             "TargetField": ["Carpenter", "Items"],
             "Entries": {
                 f"StardewZoo.{key}": {"Id": f"StardewZoo.{key}", "ItemId": f"(F)StardewZoo.{key}", "Price": price}
-                for key, _, _, _, _, price in ITEMS
+                for key, _, _, _, price in ITEMS
             },
         },
     ]
 
 
+def build_sheet():
+    index, rows = layout()
+    sheet = Image.new("RGBA", (SHEET_W, rows * 16), (0, 0, 0, 0))
+    for key, kind, (sw, sh), _, _ in ITEMS:
+        frames = sprite_images(key)
+        assert len(frames) == sprite_frames(kind), key
+        x, y = index[key] * 16 % SHEET_W, index[key] * 16 // SHEET_W * 16
+        for i, frame in enumerate(frames):
+            assert frame.size == (sw * 16, sh * 16), (key, frame.size)
+            sheet.alpha_composite(frame, (x + i * sw * 16, y))
+    return sheet
+
+
 def main():
-    sheet = Image.new("RGBA", (SHEET_W, SHEET_H), (0, 0, 0, 0))
-    for key, _, (sw, sh), _, index, _ in ITEMS:
-        sprite = DRAWERS[key]()
-        assert (sprite.w, sprite.h) == (sw * 16, sh * 16), key
-        sprite.paste(sheet, index * 16 % SHEET_W, index * 16 // SHEET_W * 16)
+    sheet = build_sheet()
     OUT.parent.mkdir(parents=True, exist_ok=True)
     sheet.save(OUT)
     PREVIEW.parent.mkdir(parents=True, exist_ok=True)
-    preview = Image.new("RGBA", (SHEET_W, SHEET_H), (120, 170, 90, 255))
+    preview = Image.new("RGBA", sheet.size, (120, 170, 90, 255))
     preview.alpha_composite(sheet)
-    preview.resize((SHEET_W * 4, SHEET_H * 4), Image.NEAREST).save(PREVIEW)
-    print(f"Wrote {OUT} ({SHEET_W}x{SHEET_H}) and {PREVIEW}")
+    preview.resize((sheet.width * 3, sheet.height * 3), Image.NEAREST).save(PREVIEW)
+    print(f"Wrote {OUT} ({sheet.width}x{sheet.height}, {len(ITEMS)} items) and {PREVIEW}")
 
 
 if __name__ == "__main__":
