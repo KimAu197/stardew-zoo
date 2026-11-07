@@ -15,4 +15,18 @@
   <ItemGroup>
     <None Update="sounds\defaults\*.wav" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
+
+  <!-- ModBuildConfig overwrites the deployed DLL in place, and a running game has that file memory-mapped,
+       so a mid-session build corrupts its loaded code (BadImageFormatException: Bad IL range, then a hang).
+       Unlinking first makes the copy a new file and leaves the running game on its old, intact image. -->
+  <Target Name="UnlinkDeployedModAssembly" BeforeTargets="AfterBuild" Condition="'$(EnableModDeploy)' == 'true' AND '$(OS)' != 'Windows_NT'">
+    <PropertyGroup>
+      <_DeployedModDir>$([System.IO.Path]::Combine($(GameModsPath), $(ModFolderName)))</_DeployedModDir>
+    </PropertyGroup>
+    <Exec Command="pgrep -f '[S]tardewModdingAPI' &gt;/dev/null" IgnoreExitCode="true" EchoOff="true">
+      <Output TaskParameter="ExitCode" PropertyName="_GameRunningExitCode" />
+    </Exec>
+    <Warning Condition="'$(_GameRunningExitCode)' == '0'" Text="Stardew Valley is running; it keeps the old $(TargetName).dll until you restart it." />
+    <Delete Files="$(_DeployedModDir)/$(TargetName).dll;$(_DeployedModDir)/$(TargetName).pdb" ContinueOnError="true" />
+  </Target>
 </Project>
