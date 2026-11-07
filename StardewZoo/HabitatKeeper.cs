@@ -65,8 +65,18 @@ internal static class HabitatKeeper
 
         (int x, int y) = habitat.RandomTile(rng);
         animal.controller = null;
-        animal.Position = new Vector2(x * Game1.tileSize, y * Game1.tileSize);
+        SetGroundCenter(animal, x * Game1.tileSize + Game1.tileSize / 2, y * Game1.tileSize + Game1.tileSize / 2);
         animal.noWarpTimer = 3000;
+    }
+
+    /// <summary>
+    /// Place an animal so its bounding-box centre (what <see cref="Character.TilePoint"/> uses) is at the given pixel.
+    /// <see cref="Character.Position"/> is the sprite's top-left, so the offset depends on the frame size.
+    /// </summary>
+    public static void SetGroundCenter(FarmAnimal animal, float x, float y)
+    {
+        AnimatedSprite sprite = animal.GetOrLoadTexture();
+        animal.Position = new Vector2(x - sprite.SpriteWidth * 2, y + 32 - sprite.SpriteHeight * 4);
     }
 
     private static void ForEachZooAnimal(Action<AnimalHouse, FarmAnimal> action)

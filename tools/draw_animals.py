@@ -13,9 +13,12 @@ from pathlib import Path
 
 from PIL import Image
 
+from animal_sizes import CLIMBERS, FLIERS, SIZES, SWIMMERS, adult_scale, baby_scale, frame, sheet_rows
+
 OUT_DIR = Path(__file__).resolve().parent.parent / "[CP] Stardew Zoo" / "assets"
 
-BABY_SCALE = 0.7
+# Extra details (toenails, claws, teeth, spots) only drawn when a sheet is rendered large enough to show them.
+DETAIL = False
 
 
 def rgb(hex_color: str) -> tuple[int, int, int, int]:
@@ -92,7 +95,13 @@ def outline_layer(layer, color):
                     break
 
 
-def render(parts, size, scale=1.0):
+def render(parts, size, scale=1.0, design=None):
+    """Render design-space parts into a size x size frame, design feet anchored to the frame's bottom centre.
+
+    32-unit designs stand on y=30 and 16-unit designs on y=15; both land on output row size-2.
+    """
+    design = size if design is None else design
+    design_x, design_y = design / 2, (design - 1 if design <= 16 else design - 2)
     anchor_x, anchor_y = size / 2, size - 2
     img = Image.new("RGBA", (size, size))
     for part in parts:
@@ -100,8 +109,8 @@ def render(parts, size, scale=1.0):
         px = layer.load()
         for oy in range(size):
             for ox in range(size):
-                x = anchor_x + (ox + 0.5 - anchor_x) / scale
-                y = anchor_y + (oy + 0.5 - anchor_y) / scale
+                x = design_x + (ox + 0.5 - anchor_x) / scale
+                y = design_y + (oy + 0.5 - anchor_y) / scale
                 for shape, color in part.fills:
                     if shape(x, y):
                         px[ox, oy] = color(x, y) if callable(color) else color
@@ -735,7 +744,7 @@ EL_GRAY, EL_EAR, EL_TUSK, EL_LINE = rgb("#8d8f97"), rgb("#b7a4a8"), rgb("#f3efe4
 def elephant_front(u, phase=0, hd=0, hx=0, blink=False, trumpet=False):
     a, b = lifts(phase)
     trunk_end = 26 if trumpet else 29
-    return [
+    parts = [
         Part((rect(8, 24 - b, 12, 30 - b), EL_GRAY), (rect(20, 24 - a, 24, 30 - a), EL_GRAY), outline=EL_LINE),
         Part((ell(16, 20, 9.5, 7), EL_GRAY), outline=EL_LINE),
         Part((rect(10, 23, 14, 30 - a), EL_GRAY), (rect(18, 23, 22, 30 - b), EL_GRAY), outline=EL_LINE),
@@ -746,11 +755,20 @@ def elephant_front(u, phase=0, hd=0, hx=0, blink=False, trumpet=False):
         Part(*([] if blink else [(rect(12 + hx, 11 + hd, 13 + hx + u, 13 + hd), EL_LINE),
                                  (rect(19 + hx, 11 + hd, 20 + hx + u, 13 + hd), EL_LINE)]), shade=False),
     ]
+    if DETAIL:
+        parts.append(Part(
+            (both(rect(15 + hx, 18 + hd, 17 + hx, trunk_end - 1), lambda x, y: y % 2.5 < 0.5), EL_LINE),
+            (ell(4.5 + hx, 14 + hd, 1.5, 3.5), scaled(EL_EAR, 0.88)), (ell(27.5 + hx, 14 + hd, 1.5, 3.5), scaled(EL_EAR, 0.88)),
+            (ell(11, 29.6 - a, 0.8, 0.45), EL_TUSK), (ell(13, 29.6 - a, 0.8, 0.45), EL_TUSK),
+            (ell(19, 29.6 - b, 0.8, 0.45), EL_TUSK), (ell(21, 29.6 - b, 0.8, 0.45), EL_TUSK),
+            shade=False,
+        ))
+    return parts
 
 
 def elephant_side(u, phase=0, hd=0):
     a, b = lifts(phase)
-    return [
+    parts = [
         Part((rect(8, 24 - a, 12, 29 - a), EL_GRAY), (rect(18, 24 - b, 22, 29 - b), EL_GRAY), outline=EL_LINE),
         Part((ell(4, 18, 2, 2.2), EL_GRAY), outline=EL_LINE),
         Part((ell(13, 19, 10, 6.5), EL_GRAY), outline=EL_LINE),
@@ -761,6 +779,16 @@ def elephant_side(u, phase=0, hd=0):
         Part((rect(26, 18 + hd, 28, 22 + hd), EL_TUSK), outline=EL_LINE, shade=False),
         Part((rect(24, 12 + hd, 25 + u, 14 + hd), EL_LINE), shade=False),
     ]
+    if DETAIL:
+        parts.append(Part(
+            (ell(22, 14 + hd, 2, 4), scaled(EL_EAR, 0.88)),
+            (both(seg(27.3, 18 + hd, 29, 25, 1.4), lambda x, y: y % 2.5 < 0.5), EL_LINE),
+            (ell(7, 29.6 - b, 0.8, 0.45), EL_TUSK), (ell(9, 29.6 - b, 0.8, 0.45), EL_TUSK),
+            (ell(17, 29.6 - a, 0.8, 0.45), EL_TUSK), (ell(19, 29.6 - a, 0.8, 0.45), EL_TUSK),
+            (both(ell(13, 19, 10, 6.5), lambda x, y: (x + y) % 5 < 0.35 and y > 15), scaled(EL_GRAY, 0.9)),
+            shade=False,
+        ))
+    return parts
 
 
 def elephant_back(u, phase=0, hx=0):
@@ -804,7 +832,7 @@ DN_BODY, DN_BELLY, DN_DARK, DN_LINE = rgb("#3f8f4a"), rgb("#c5d96a"), rgb("#2458
 def dino_front(u, phase=0, hd=0, hx=0, blink=False, roar=False):
     a, b = lifts(phase)
     mouth = 4.2 if roar else 2.8
-    return [
+    parts = [
         Part((rect(10, 24 - b, 13, 30 - b), DN_DARK), (rect(19, 24 - a, 22, 30 - a), DN_DARK), outline=DN_LINE),
         Part((ell(16, 23, 6.5, 5.5), DN_BODY), (both(ell(16, 23, 6.5, 5.5), lambda x, y: y > 24), DN_BELLY), outline=DN_LINE),
         Part((rect(12, 24, 15, 30 - a), DN_BODY), (rect(17, 24, 20, 30 - b), DN_BODY), outline=DN_LINE),
@@ -815,11 +843,21 @@ def dino_front(u, phase=0, hd=0, hx=0, blink=False, roar=False):
                                  (rect(19 + hx, 7 + hd, 20 + hx + u, 9 + hd), DN_LINE)]),
              (rect(15 + hx, 11 + hd, 17 + hx, 12 + hd + u), DN_DARK), shade=False),
     ]
+    if DETAIL:
+        teeth = [(rect(12.5 + hx + i * 1.4, 11.6 + hd, 13.1 + hx + i * 1.4, 12.4 + hd), rgb("#f6f2e2")) for i in range(5)]
+        parts.append(Part(
+            *teeth,
+            (ell(11, 4.5 + hd + 0, 0.9, 0.7), DN_DARK), (ell(21, 4.5 + hd, 0.9, 0.7), DN_DARK),
+            (ell(13, 21, 0.8, 0.6), DN_DARK), (ell(19, 21.5, 0.8, 0.6), DN_DARK),
+            (rect(12, 29.4 - a, 15, 30 - a), rgb("#d8d2b0")), (rect(17, 29.4 - b, 20, 30 - b), rgb("#d8d2b0")),
+            shade=False,
+        ))
+    return parts
 
 
 def dino_side(u, phase=0, hd=0):
     a, b = lifts(phase)
-    return [
+    parts = [
         Part((rect(10, 24 - a, 13, 29 - a), DN_DARK), (rect(16, 24 - b, 19, 29 - b), DN_DARK), outline=DN_LINE),
         Part((seg(6, 20, 2, 14, 2.4), DN_BODY), (ell(2, 13, 2, 2.2), DN_BODY), outline=DN_LINE),
         Part((ell(13, 20, 8.5, 6), DN_BODY), (both(ell(13, 20, 8.5, 6), lambda x, y: y > 22), DN_BELLY), outline=DN_LINE),
@@ -829,6 +867,15 @@ def dino_side(u, phase=0, hd=0):
         Part((ell(28.5, 13.5 + hd, 3.2, 2.4), DN_BELLY), (rect(23, 10 + hd, 24 + u, 12 + hd), DN_LINE),
              (rect(29, 13 + hd, 31, 14 + hd), DN_DARK), shade=False),
     ]
+    if DETAIL:
+        spots = [(ell(cx, cy, 0.9, 0.6), DN_DARK) for cx, cy in ((8, 16.5), (11, 15.3), (14, 15), (17, 15.8), (10, 18.5), (15, 18))]
+        teeth = [(rect(26 + i * 1.3, 14.4 + hd, 26.6 + i * 1.3, 15.2 + hd), rgb("#f6f2e2")) for i in range(4)]
+        parts.append(Part(
+            *spots, *teeth,
+            (rect(8, 29.4 - b, 11, 30 - b), rgb("#d8d2b0")), (rect(15, 29.4 - a, 18, 30 - a), rgb("#d8d2b0")),
+            shade=False,
+        ))
+    return parts
 
 
 def dino_back(u, phase=0, hx=0):
@@ -900,7 +947,10 @@ def gorilla_back(u, phase=0, hx=0):
     a, b = lifts(phase)
     return [
         Part((ell(16 + hx, 11, 8, 7), GO_FUR), outline=GO_LINE),
-        Part((ell(16, 20, 9, 7.5), GO_FUR), outline=GO_LINE),
+        Part((ell(16, 20, 9, 7.5), GO_FUR),
+             *([(both(ell(16, 20, 9, 7.5), lambda x, y: y < 22 and abs(x - 16) < 6.5 - (22 - y) * 0.3), rgb("#9a9aa6"))]
+               if DETAIL else []),
+             outline=GO_LINE),
         Part((ell(7, 22, 3.2, 5), GO_FUR), (ell(25, 22, 3.2, 5), GO_FUR), outline=GO_LINE),
         Part((rect(10, 23, 14, 30 - a), GO_FUR), (rect(18, 23, 22, 30 - b), GO_FUR), outline=GO_LINE),
     ]
@@ -1070,8 +1120,17 @@ def sealion_frames(u):
 BR_FUR, BR_SN, BR_LINE = rgb("#6a3e24"), rgb("#c9a07a"), rgb("#2c160c")
 
 
+BR_CLAW = rgb("#e8dcc4")
+
+
+def bear_claws(feet):
+    return Part(*[(rect(x0 + 0.4 + i * 1.1, y - 0.7, x0 + 0.9 + i * 1.1, y), BR_CLAW) for x0, y in feet for i in range(3)],
+                shade=False)
+
+
 def bear_front(u, phase=0, hd=0, hx=0, blink=False):
     a, b = lifts(phase)
+    claws = [bear_claws([(10, 30 - a), (18, 30 - b)])] if DETAIL else []
     return [
         Part((rect(8, 24 - b, 12, 30 - b), BR_FUR), (rect(20, 24 - a, 24, 30 - a), BR_FUR), outline=BR_LINE),
         Part((ell(16, 21, 9.5, 7), BR_FUR), outline=BR_LINE),
@@ -1082,7 +1141,7 @@ def bear_front(u, phase=0, hd=0, hx=0, blink=False):
              *([] if blink else [(rect(12 + hx, 12 + hd, 13 + hx + u, 14 + hd), BR_LINE),
                                  (rect(19 + hx, 12 + hd, 20 + hx + u, 14 + hd), BR_LINE)]),
              (rect(15 + hx, 16 + hd, 17 + hx, 17 + hd + u), BR_LINE), shade=False),
-    ]
+    ] + claws
 
 
 def bear_side(u, phase=0, hd=0):
@@ -1096,7 +1155,7 @@ def bear_side(u, phase=0, hd=0):
         Part((ell(25, 14 + hd, 6, 5.5), BR_FUR), outline=BR_LINE),
         Part((ell(28.5, 16 + hd, 3.2, 2.4), BR_SN), (rect(24, 12 + hd, 25 + u, 14 + hd), BR_LINE),
              (rect(29, 16 + hd, 31, 17 + hd), BR_LINE), shade=False),
-    ]
+    ] + ([bear_claws([(7.6, 30 - b), (16.6, 30 - a)])] if DETAIL else [])
 
 
 def bear_back(u, phase=0, hx=0):
@@ -1431,14 +1490,282 @@ def heron_frames(u):
 
 
 # ---------------------------------------------------------------------------
+# Flight sheets ({Name}Fly.png): fly down, fly right, fly up, perch — 4 frames each
+# ---------------------------------------------------------------------------
+
+FLAP = (-4.0, -1.5, 2.5, -1.5)          # wing-tip offset per frame: up, mid, down, mid
+BRANCH, BRANCH_LINE = rgb("#7a5230"), rgb("#3a2414")
+OW_BEAK = rgb("#d97706")
+
+
+def owl_fly_front(phase, back=False):
+    off = FLAP[phase]
+    left, right = seg(6, 9, 0.8, 9 + off, 3.2), seg(10, 9, 15.2, 9 + off, 3.2)
+    parts = [
+        Part((left, OW_BROWN), (right, OW_BROWN),
+             (both(left, lambda x, y: x < 2.6), OW_TUFT), (both(right, lambda x, y: x > 13.4), OW_TUFT), outline=OW_LINE),
+        Part((ell(8, 10, 3.4, 3.6), OW_BROWN), outline=OW_LINE),
+        Part((ell(8, 6, 4, 3.4), OW_BROWN), outline=OW_LINE),
+        Part((ell(5, 3.2, 1.1, 1.4), OW_TUFT), (ell(11, 3.2, 1.1, 1.4), OW_TUFT), outline=OW_LINE),
+    ]
+    if back:
+        parts.append(Part((rect(7, 12.5, 9, 14.5), OW_TUFT), outline=OW_LINE))
+    else:
+        parts += [
+            Part((ell(8, 6.8, 3, 2.4), OW_CREAM), (ell(8, 11, 2, 2), OW_BELLY), shade=False),
+            Part((ell(6.3, 6.5, 1.2, 1.3), OW_EYE), (ell(9.7, 6.5, 1.2, 1.3), OW_EYE),
+                 (rect(6, 6, 7, 7), OW_LINE), (rect(9, 6, 10, 7), OW_LINE), (rect(7.5, 8, 8.5, 9), OW_BEAK), shade=False),
+        ]
+    return parts
+
+
+def owl_fly_side(phase):
+    off = FLAP[phase]
+    near = seg(8, 8.5, 4.5, 8.5 + off * 1.2, 3.4)
+    return [
+        Part((seg(7.5, 8.5, 5, 8.5 + off * 0.8, 3), scaled(OW_BROWN, 0.75)), outline=OW_LINE),
+        Part((ell(7.5, 9.5, 4.6, 3), OW_BROWN), (rect(2, 9, 4, 10.5), OW_TUFT), outline=OW_LINE),
+        Part((ell(11.5, 7, 3, 3), OW_BROWN), (ell(11.6, 4.4, 1, 1.3), OW_TUFT), outline=OW_LINE),
+        Part((ell(12.6, 7.4, 1.9, 1.9), OW_CREAM), (ell(12.8, 7.2, 1, 1.1), OW_EYE), (rect(12.5, 7, 13.5, 8), OW_LINE),
+             (rect(14, 8, 15, 9), OW_BEAK), shade=False),
+        Part((near, OW_BROWN), (both(near, lambda x, y: x < 6), OW_TUFT), outline=OW_LINE),
+    ]
+
+
+def owl_perch(blink=False, hx=0):
+    return [
+        Part((ell(8, 10.6, 4.4, 4), OW_BROWN), outline=OW_LINE),
+        Part((ell(8, 11.4, 2.8, 2.8), OW_BELLY), shade=False),
+        Part((ell(8 + hx * 0.5, 6.2, 4.6, 4), OW_BROWN), outline=OW_LINE),
+        Part((ell(4.2 + hx * 0.5, 3.2, 1.3, 1.6), OW_TUFT), (ell(11.8 + hx * 0.5, 3.2, 1.3, 1.6), OW_TUFT), outline=OW_LINE),
+        Part((ell(8 + hx, 7, 3.4, 2.8), OW_CREAM), shade=False),
+        Part(*([(rect(5 + hx, 6.5, 7 + hx, 7.5), OW_LINE), (rect(9 + hx, 6.5, 11 + hx, 7.5), OW_LINE)] if blink else [
+                (ell(6 + hx, 6.6, 1.5, 1.6), OW_EYE), (ell(10 + hx, 6.6, 1.5, 1.6), OW_EYE),
+                (rect(6 + hx, 6, 7 + hx, 8), OW_LINE), (rect(10 + hx, 6, 11 + hx, 8), OW_LINE)]),
+             (rect(7 + hx, 8.5, 9 + hx, 9.5), OW_BEAK), shade=False),
+        Part((seg(0.5, 15, 15.5, 14.6, 1.8), BRANCH), outline=BRANCH_LINE),
+        Part((rect(6, 13.6, 7, 14.6), OW_BEAK), (rect(9, 13.6, 10, 14.6), OW_BEAK), shade=False),
+    ]
+
+
+def owl_fly_frames():
+    return ([owl_fly_front(p) for p in range(4)] + [owl_fly_side(p) for p in range(4)]
+            + [owl_fly_front(p, back=True) for p in range(4)]
+            + [owl_perch(), owl_perch(blink=True), owl_perch(hx=-1), owl_perch(hx=1)])
+
+
+def heron_fly_front(u, phase, back=False):
+    off = FLAP[phase] * 2
+    left, right = seg(13, 15, 2, 15 + off, 4.2), seg(19, 15, 30, 15 + off, 4.2)
+    belly = ell(16, 16.5, 4, 5)
+    parts = [
+        Part((left, NH_GRAY), (right, NH_GRAY),
+             (both(left, lambda x, y: x < 5), NH_CAP), (both(right, lambda x, y: x > 27), NH_CAP), outline=NH_LINE),
+        Part((belly, NH_GRAY), *([] if back else [(both(belly, lambda x, y: y > 17), NH_CREAM)]), outline=NH_LINE),
+    ]
+    if back:
+        parts += [
+            Part((rect(14.5, 20, 15.5, 25), NH_LEG), (rect(16.5, 20, 17.5, 25), NH_LEG), outline=NH_LINE, shade=False),
+            Part((ell(16, 11.5, 3.4, 3), NH_CAP), outline=NH_LINE),
+        ]
+    else:
+        parts += [
+            Part((ell(16, 11.5, 3.4, 3), NH_GRAY), (ell(16, 10.5, 3.2, 1.8), NH_CAP), outline=NH_LINE),
+            Part((ell(16, 12.6, 2.4, 1.4), NH_CREAM), (rect(14.3, 11.3, 14.3 + u, 12.3), NH_LINE),
+                 (rect(16.7, 11.3, 16.7 + u, 12.3), NH_LINE), shade=False),
+            Part((rect(15.3, 13, 16.7, 17), NH_BILL), outline=NH_LINE),
+        ]
+    return parts
+
+
+def heron_fly_side(u, phase):
+    off = FLAP[phase] * 2
+    near = seg(16, 15, 10, 15 + off, 4.4)
+    body = ell(15, 16.5, 7, 3.6)
+    return [
+        Part((seg(15, 15, 9, 15 + off * 0.7, 4), scaled(NH_GRAY, 0.75)), outline=NH_LINE),
+        Part((seg(10, 17, 1.5, 18.5, 1.2), NH_LEG), outline=NH_LINE, shade=False),
+        Part((body, NH_GRAY), (both(body, lambda x, y: y > 17.5), NH_CREAM), outline=NH_LINE),
+        Part((ell(23, 15, 3.6, 3.2), NH_GRAY), (ell(23, 14, 3.4, 2), NH_CAP), outline=NH_LINE),
+        Part((ell(24.5, 16, 1.8, 1.4), NH_CREAM), (rect(24, 14.5, 24 + u, 15.5), NH_LINE), shade=False),
+        Part((seg(26, 16, 31, 16.8, 1.6), NH_BILL), outline=NH_LINE),
+        Part((near, NH_GRAY), (both(near, lambda x, y: x < 12.5), NH_CAP), outline=NH_LINE),
+    ]
+
+
+def perch_branch(y):
+    return Part((seg(3, y, 29, y - 0.6, 2.4), BRANCH), outline=BRANCH_LINE)
+
+
+def heron_fly_frames(u):
+    return ([heron_fly_front(u, p) for p in range(4)] + [heron_fly_side(u, p) for p in range(4)]
+            + [heron_fly_front(u, p, back=True) for p in range(4)]
+            + [heron_front(u) + [perch_branch(29.5)], heron_front(u, blink=True) + [perch_branch(29.5)],
+               heron_front(u, hx=-1) + [perch_branch(29.5)], heron_front(u, hx=1) + [perch_branch(29.5)]])
+
+
+FL_BLACK = rgb("#2a2024")
+
+
+def flamingo_fly_front(u, phase, back=False):
+    off = FLAP[phase] * 2
+    left, right = seg(14, 15, 3, 15 + off, 4.2), seg(18, 15, 29, 15 + off, 4.2)
+    parts = [
+        Part((left, FL_WING), (right, FL_WING),
+             (both(left, lambda x, y: x < 6), FL_BLACK), (both(right, lambda x, y: x > 26), FL_BLACK), outline=FL_LINE),
+        Part((ell(16, 16, 3.4, 4.4), FL_PINK), outline=FL_LINE),
+    ]
+    if back:
+        parts += [
+            Part((rect(15, 19, 16, 27), FL_LEG), (rect(16.6, 19, 17.6, 27), FL_LEG), outline=FL_LINE, shade=False),
+            Part((ell(16, 9, 2, 1.8), FL_PINK), outline=FL_LINE),
+        ]
+    else:
+        parts += [
+            Part((seg(16, 12, 16, 9.5, 1.8), FL_PINK), (ell(16, 8.5, 2, 1.8), FL_PINK), outline=FL_LINE),
+            Part((rect(15.4, 9.5, 16.6, 12), FL_BEAK), (rect(15.4, 12, 16.6, 13), FL_BLACK), outline=FL_LINE),
+            Part((rect(14.5, 7.8, 14.5 + u, 8.8), FL_LINE), (rect(17, 7.8, 17 + u, 8.8), FL_LINE), shade=False),
+        ]
+    return parts
+
+
+def flamingo_fly_side(u, phase):
+    off = FLAP[phase] * 2
+    far = seg(16, 15, 10, 15 + off * 0.7, 4)
+    near = seg(17, 15, 11, 15 + off, 4.6)
+    return [
+        Part((far, scaled(FL_WING, 0.8)), (both(far, lambda x, y: x < 12.5), FL_BLACK), outline=FL_LINE),
+        Part((seg(11, 16.5, 0.5, 17.5, 1.1), FL_LEG), outline=FL_LINE, shade=False),
+        Part((ell(16, 16, 6, 3.2), FL_PINK), outline=FL_LINE),
+        Part((seg(21, 15, 27.5, 13.5, 1.8), FL_PINK), outline=FL_LINE),
+        Part((ell(28.5, 13.2, 2, 1.8), FL_PINK), outline=FL_LINE),
+        Part((seg(29.5, 13.8, 31.3, 16, 1.4), FL_BEAK), (ell(31.2, 16.2, 0.9, 0.8), FL_BLACK), outline=FL_LINE),
+        Part((rect(28.5, 12.5, 28.5 + u, 13.5), FL_LINE), shade=False),
+        Part((near, FL_WING), (both(near, lambda x, y: x < 13.5), FL_BLACK), outline=FL_LINE),
+    ]
+
+
+def flamingo_fly_frames(u):
+    return ([flamingo_fly_front(u, p) for p in range(4)] + [flamingo_fly_side(u, p) for p in range(4)]
+            + [flamingo_fly_front(u, p, back=True) for p in range(4)]
+            + [flamingo_front(u, one_leg=True), flamingo_front(u, one_leg=True, blink=True),
+               flamingo_front(u, one_leg=True, hx=-1), flamingo_front(u, one_leg=True, hx=1)])
+
+
+# ---------------------------------------------------------------------------
+# Monkey climbing sheet (MonkeyClimb.png): climb, sit on branch, hang/swing — 4 frames each
+# ---------------------------------------------------------------------------
+
+def rotated(shape, cx, cy, angle):
+    c, s = math.cos(-angle), math.sin(-angle)
+    return lambda x, y: shape(cx + (x - cx) * c - (y - cy) * s, cy + (x - cx) * s + (y - cy) * c)
+
+
+def rotate_parts(parts, cx, cy, angle):
+    return [Part(*[(rotated(shape, cx, cy, angle), color) for shape, color in p.fills], outline=p.outline, shade=p.shade)
+            for p in parts]
+
+
+def monkey_climb(phase):
+    la, ra = (-2.5, 0, 1.5, 0)[phase], (1.5, 0, -2.5, 0)[phase]
+    return [
+        Part((seg(8, 12, 9.5, 15.5, 1.1), MK_DARK), outline=MK_LINE),
+        Part((seg(5.5, 8, 4.6, 4 + la, 1.5), MK_FUR), (seg(10.5, 8, 11.4, 4 + ra, 1.5), MK_FUR), outline=MK_LINE),
+        Part((ell(4.6, 3.6 + la, 1, 1), MK_FACE), (ell(11.4, 3.6 + ra, 1, 1), MK_FACE), shade=False),
+        Part((seg(6, 12, 5, 13.5 - ra * 0.6, 1.6), MK_FUR), (seg(10, 12, 11, 13.5 - la * 0.6, 1.6), MK_FUR), outline=MK_LINE),
+        Part((ell(8, 10, 3.6, 3.4), MK_FUR), outline=MK_LINE),
+        Part((ell(4.6, 5.6, 1.2, 1.4), MK_FUR), (ell(11.4, 5.6, 1.2, 1.4), MK_FUR), outline=MK_LINE),
+        Part((ell(8, 5.8, 3.6, 3.2), MK_FUR), outline=MK_LINE),
+    ]
+
+
+def monkey_sit(blink=False, scratch=False, sleep=False):
+    hd = 1 if sleep else 0
+    eyes_closed = blink or sleep
+    return [
+        Part((seg(1, 12.2, 15, 12, 1.6), BRANCH), outline=BRANCH_LINE),
+        Part((seg(11, 12.5, 12.5, 15.2, 1.1), MK_DARK), (ell(12, 15.4, 1.1, 0.8), MK_DARK), outline=MK_LINE),
+        Part((rect(5, 11.5, 6.6, 14.6), MK_FUR), (rect(9.4, 11.5, 11, 14.6), MK_FUR), outline=MK_LINE),
+        Part((rect(5, 14, 6.6, 15), MK_FACE), (rect(9.4, 14, 11, 15), MK_FACE), shade=False),
+        Part((ell(8, 10, 3.8, 3.2), MK_FUR), outline=MK_LINE),
+        Part((ell(3.8, 10.5, 1.1, 2), MK_FUR), (ell(11.6, 5.5, 1.1, 2) if scratch else ell(12.2, 10.5, 1.1, 2), MK_FUR),
+             outline=MK_LINE),
+        Part((ell(8, 6 + hd, 4.2, 3.6), MK_FUR), outline=MK_LINE),
+        Part((ell(3.5, 5.5 + hd, 1.6, 1.8), MK_FUR), (ell(12.5, 5.5 + hd, 1.6, 1.8), MK_FUR), outline=MK_LINE),
+        Part((ell(8, 6.8 + hd, 3.2, 2.8), MK_FACE),
+             *([] if eyes_closed else [(rect(6, 6 + hd, 7, 7 + hd), MK_LINE), (rect(9, 6 + hd, 10, 7 + hd), MK_LINE)]),
+             *([(rect(5.6, 6.5 + hd, 7.4, 7 + hd), MK_DARK), (rect(8.6, 6.5 + hd, 10.4, 7 + hd), MK_DARK)] if eyes_closed else []),
+             (rect(7, 8 + hd, 9, 9 + hd), MK_DARK), shade=False),
+    ]
+
+
+def monkey_hang(angle):
+    figure = [
+        Part((seg(10.5, 12, 13.5, 14, 1), MK_DARK), outline=MK_LINE),
+        Part((seg(7, 12.5, 6.5, 15, 1.4), MK_FUR), (seg(10, 12.5, 10.5, 15, 1.4), MK_FUR), outline=MK_LINE),
+        Part((ell(8.5, 10.5, 3.2, 3), MK_FUR), outline=MK_LINE),
+        Part((seg(5.8, 9, 4.6, 12, 1.3), MK_FUR), outline=MK_LINE),
+        Part((seg(8, 1.6, 8.4, 7, 1.4), MK_FUR), outline=MK_LINE),
+        Part((ell(8.5, 6.6, 3.4, 3), MK_FUR), outline=MK_LINE),
+        Part((ell(8.5, 7.2, 2.5, 2.1), MK_FACE), (rect(7.2, 6.6, 8, 7.4), MK_LINE), (rect(9.2, 6.6, 10, 7.4), MK_LINE),
+             (rect(8, 8.4, 9, 9), MK_DARK), shade=False),
+    ]
+    return [Part((seg(0, 1, 16, 1.3, 1.6), BRANCH), outline=BRANCH_LINE)] + rotate_parts(figure, 8, 1.4, angle) + [
+        Part((ell(8, 1.4, 1, 0.9), MK_FACE), outline=MK_LINE)]
+
+
+def monkey_climb_frames():
+    return ([monkey_climb(p) for p in range(4)]
+            + [monkey_sit(), monkey_sit(blink=True), monkey_sit(scratch=True), monkey_sit(sleep=True)]
+            + [monkey_hang(a) for a in (-0.4, 0, 0.4, 0)])
+
+
+# ---------------------------------------------------------------------------
 # Sheets
 # ---------------------------------------------------------------------------
 
-def build_sheet(frames, size, scale=1.0):
-    sheet = Image.new("RGBA", (size * 4, size * 5))
+WATER_HI, WATER_LO = (214, 238, 255, 230), (150, 196, 235, 210)
+
+
+def build_sheet(frames, size, scale=1.0, design=None, rows=5):
+    sheet = Image.new("RGBA", (size * 4, size * rows))
     for index, parts in enumerate(frames):
-        sheet.paste(render(parts, size, scale), ((index % 4) * size, (index // 4) * size))
+        sheet.paste(render(parts, size, scale, design), ((index % 4) * size, (index // 4) * size))
     return sheet
+
+
+def submerge(frame_img, mode):
+    """Sink a frame into water: 'swim' lowers the body ~40% under the waterline, 'wade' hides the lower legs."""
+    box = frame_img.getbbox()
+    if not box:
+        return frame_img
+    top, bottom = box[1], box[3]
+    height = bottom - top
+    if mode == "swim":
+        sink, line = round(height * 0.4), bottom - 1
+    else:
+        sink, line = 0, bottom - max(2, round(height * 0.18))
+    out = Image.new("RGBA", frame_img.size)
+    out.paste(frame_img, (0, sink))
+    px = out.load()
+    w, h = out.size
+    cols = [x for x in range(w) if any(px[x, y][3] for y in range(max(0, line - 2), line))]
+    for y in range(line, h):
+        for x in range(w):
+            px[x, y] = (0, 0, 0, 0)
+    if cols:
+        for x in range(max(0, min(cols) - 1), min(w, max(cols) + 2)):
+            px[x, line] = WATER_HI if (x // 2) % 2 == 0 else WATER_LO
+    return out
+
+
+def add_water_rows(sheet, size, mode):
+    out = Image.new("RGBA", (sheet.width, sheet.height * 2))
+    out.paste(sheet, (0, 0))
+    for index in range(20):
+        x, y = (index % 4) * size, (index // 4) * size
+        out.paste(submerge(sheet.crop((x, y, x + size, y + size)), mode), (x, y + 5 * size))
+    return out
 
 
 def shop_icon(frame, crop):
@@ -1457,9 +1784,86 @@ def write_preview(name, frame, scale=8):
     big.save(PREVIEW_DIR / f"{name}.png")
 
 
+def unit(scale):
+    """Design units per output pixel, so one-unit details (eyes) never vanish when shrunk."""
+    return 1 / scale if scale < 1 else 1
+
+
+def frames_at(name, scale, baby=False):
+    global DETAIL
+    DETAIL = scale >= 1.3
+    try:
+        if name in BIG:
+            return BIG[name][0](unit(scale))
+        adult_frames, baby_frames = SMALL[name]
+        return (baby_frames if baby and baby_frames else adult_frames)()
+    finally:
+        DETAIL = False
+
+
+def write_lineup(path):
+    """Adults (top) and babies (below) at true relative size, 2x, on a 16px tile grid."""
+    groups = [
+        ["Owl", "Raccoon", "Penguin", "NightHeron", "Monkey", "Capybara", "Flamingo", "Deer", "Alpaca", "SeaLion", "Panda"],
+        ["Lion", "Gorilla", "Bear", "Elephant", "Giraffe", "Dinosaur"],
+    ]
+    gap = 6
+    bands = []
+    for group in groups:
+        width = sum(frame(n) for n in group) + gap * (len(group) + 1)
+        height = max(frame(n) for n in group)
+        band = Image.new("RGBA", (width, height * 2 + gap * 3), (110, 160, 70, 255))
+        px = band.load()
+        for y in range(band.height):
+            for x in range(band.width):
+                if x % 16 == 0 or y % 16 == 0:
+                    px[x, y] = (98, 146, 62, 255)
+        x = gap
+        for name in group:
+            size = frame(name)
+            adult = Image.open(OUT_DIR / f"{name}.png").crop((0, 0, size, size))
+            baby = Image.open(OUT_DIR / f"Baby{name}.png").crop((0, 0, size, size))
+            band.alpha_composite(adult, (x, gap + height - size))
+            band.alpha_composite(baby, (x, gap * 2 + height * 2 - size))
+            x += size + gap
+        bands.append(band)
+    lineup = Image.new("RGBA", (max(b.width for b in bands), sum(b.height for b in bands)), (110, 160, 70, 255))
+    y = 0
+    for band in bands:
+        lineup.alpha_composite(band, (0, y))
+        y += band.height
+    lineup = lineup.resize((lineup.width * 2, lineup.height * 2), Image.NEAREST)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    lineup.save(path)
+    small = lineup.resize((512, round(lineup.height * 512 / lineup.width)), Image.NEAREST)
+    small.save(path.with_name(path.stem + "_512.png"))
+
+
+def write_extras(path):
+    """Fly, climb, and swim rows side by side at 2x, for a quick visual check."""
+    sheets = [Image.open(OUT_DIR / f"{n}Fly.png") for n in FLIERS] + [Image.open(OUT_DIR / f"{n}Climb.png") for n in CLIMBERS]
+    for name in SWIMMERS:
+        size = frame(name)
+        sheets.append(Image.open(OUT_DIR / f"{name}.png").crop((0, 5 * size, 4 * size, 7 * size)))
+    width = sum(s.width for s in sheets) + 4 * len(sheets)
+    out = Image.new("RGBA", (width, max(s.height for s in sheets)), (90, 140, 190, 255))
+    x = 0
+    for sheet in sheets:
+        out.alpha_composite(sheet, (x, 0))
+        x += sheet.width + 4
+    out = out.resize((out.width * 2, out.height * 2), Image.NEAREST)
+    if out.width > 1200:
+        out = out.resize((1200, round(out.height * 1200 / out.width)), Image.NEAREST)
+    out.save(path)
+
+
+BIG = {}
+SMALL = {}
+
+
 def main():
     OUT_DIR.mkdir(parents=True, exist_ok=True)
-    big = {
+    BIG.update({
         "Panda": (panda_frames, (0, 2, 32, 18)),
         "Lion": (lion_frames, (0, 2, 32, 18)),
         "Giraffe": (giraffe_frames, (0, 0, 32, 16)),
@@ -1473,32 +1877,43 @@ def main():
         "Flamingo": (flamingo_frames, (0, 0, 32, 16)),
         "Deer": (deer_frames, (0, 0, 32, 16)),
         "NightHeron": (heron_frames, (0, 2, 32, 18)),
-    }
-    for name, (frames, crop) in big.items():
-        adult = build_sheet(frames(1), 32)
-        adult.save(OUT_DIR / f"{name}.png")
-        build_sheet(frames(1 / BABY_SCALE), 32, BABY_SCALE).save(OUT_DIR / f"Baby{name}.png")
-        front = render(frames(1)[0], 32)
-        shop_icon(front, crop).save(OUT_DIR / f"{name}Shop.png")
-        write_preview(name, front)
-
-    small = {
+    })
+    SMALL.update({
         "Penguin": (penguin_frames, chick_frames),
         "Monkey": (monkey_frames, None),
         "Raccoon": (raccoon_frames, None),
         "Owl": (owl_frames, None),
-    }
-    for name, (adult_frames, baby_frames) in small.items():
-        adult_sheet = build_sheet(adult_frames(), 16)
-        adult_sheet.save(OUT_DIR / f"{name}.png")
-        if baby_frames is None:
-            build_sheet(adult_frames(), 16, BABY_SCALE).save(OUT_DIR / f"Baby{name}.png")
-        else:
-            build_sheet(baby_frames(), 16).save(OUT_DIR / f"Baby{name}.png")
-        front = render(adult_frames()[0], 16)
-        shop_icon(front, (0, 0, 16, 16)).save(OUT_DIR / f"{name}Shop.png")
-        write_preview(name, front)
+    })
+    fly_frames = {"Owl": lambda u: owl_fly_frames(), "NightHeron": heron_fly_frames, "Flamingo": flamingo_fly_frames}
+    climb_frames = {"Monkey": monkey_climb_frames}
 
+    for name, (design, size, _, _) in SIZES.items():
+        adult_s, baby_s = adult_scale(name), baby_scale(name)
+        adult = build_sheet(frames_at(name, adult_s), size, adult_s, design)
+        baby = build_sheet(frames_at(name, baby_s, baby=True), size, baby_s, design)
+        if name in SWIMMERS:
+            adult = add_water_rows(adult, size, SWIMMERS[name])
+            baby = add_water_rows(baby, size, SWIMMERS[name])
+        assert adult.height == size * sheet_rows(name)
+        adult.save(OUT_DIR / f"{name}.png")
+        baby.save(OUT_DIR / f"Baby{name}.png")
+
+        if name in fly_frames:
+            build_sheet(fly_frames[name](unit(adult_s)), size, adult_s, design, rows=4).save(OUT_DIR / f"{name}Fly.png")
+        if name in climb_frames:
+            build_sheet(climb_frames[name](), size, adult_s, design, rows=3).save(OUT_DIR / f"{name}Climb.png")
+
+        # shop icons stay 32x16, cut from the design-scale drawing
+        if name in BIG:
+            front = render(BIG[name][0](1)[0], 32)
+            shop_icon(front, BIG[name][1]).save(OUT_DIR / f"{name}Shop.png")
+        else:
+            front = render(SMALL[name][0]()[0], 16)
+            shop_icon(front, (0, 0, 16, 16)).save(OUT_DIR / f"{name}Shop.png")
+        write_preview(name, adult.crop((0, 0, size, size)))
+
+    write_lineup(Path("/tmp/zoo_art/animal_lineup.png"))
+    write_extras(Path("/tmp/zoo_art/animal_extras.png"))
     print(f"Wrote animal sprites to {OUT_DIR}")
 
 

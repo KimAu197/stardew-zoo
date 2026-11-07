@@ -4,7 +4,7 @@
     {
       "LogName": "Zoo textures",
       "Action": "Load",
-      "Target": "Mods/StardewZoo/Zoo, Mods/StardewZoo/BigZoo, Mods/StardewZoo/DeluxeZoo, Mods/StardewZoo/Penguin, Mods/StardewZoo/BabyPenguin, Mods/StardewZoo/PenguinShop, Mods/StardewZoo/Panda, Mods/StardewZoo/BabyPanda, Mods/StardewZoo/PandaShop, Mods/StardewZoo/Lion, Mods/StardewZoo/BabyLion, Mods/StardewZoo/LionShop, Mods/StardewZoo/Giraffe, Mods/StardewZoo/BabyGiraffe, Mods/StardewZoo/GiraffeShop, Mods/StardewZoo/Monkey, Mods/StardewZoo/BabyMonkey, Mods/StardewZoo/MonkeyShop, Mods/StardewZoo/Capybara, Mods/StardewZoo/BabyCapybara, Mods/StardewZoo/CapybaraShop, Mods/StardewZoo/Elephant, Mods/StardewZoo/BabyElephant, Mods/StardewZoo/ElephantShop, Mods/StardewZoo/Dinosaur, Mods/StardewZoo/BabyDinosaur, Mods/StardewZoo/DinosaurShop, Mods/StardewZoo/Gorilla, Mods/StardewZoo/BabyGorilla, Mods/StardewZoo/GorillaShop, Mods/StardewZoo/Raccoon, Mods/StardewZoo/BabyRaccoon, Mods/StardewZoo/RaccoonShop, Mods/StardewZoo/Alpaca, Mods/StardewZoo/BabyAlpaca, Mods/StardewZoo/AlpacaShop, Mods/StardewZoo/SeaLion, Mods/StardewZoo/BabySeaLion, Mods/StardewZoo/SeaLionShop, Mods/StardewZoo/Bear, Mods/StardewZoo/BabyBear, Mods/StardewZoo/BearShop, Mods/StardewZoo/Flamingo, Mods/StardewZoo/BabyFlamingo, Mods/StardewZoo/FlamingoShop, Mods/StardewZoo/Owl, Mods/StardewZoo/BabyOwl, Mods/StardewZoo/OwlShop, Mods/StardewZoo/Deer, Mods/StardewZoo/BabyDeer, Mods/StardewZoo/DeerShop, Mods/StardewZoo/NightHeron, Mods/StardewZoo/BabyNightHeron, Mods/StardewZoo/NightHeronShop",
+      "Target": "Mods/StardewZoo/Zoo, Mods/StardewZoo/BigZoo, Mods/StardewZoo/DeluxeZoo, Mods/StardewZoo/Penguin, Mods/StardewZoo/BabyPenguin, Mods/StardewZoo/PenguinShop, Mods/StardewZoo/Panda, Mods/StardewZoo/BabyPanda, Mods/StardewZoo/PandaShop, Mods/StardewZoo/Lion, Mods/StardewZoo/BabyLion, Mods/StardewZoo/LionShop, Mods/StardewZoo/Giraffe, Mods/StardewZoo/BabyGiraffe, Mods/StardewZoo/GiraffeShop, Mods/StardewZoo/Monkey, Mods/StardewZoo/BabyMonkey, Mods/StardewZoo/MonkeyShop, Mods/StardewZoo/MonkeyClimb, Mods/StardewZoo/Capybara, Mods/StardewZoo/BabyCapybara, Mods/StardewZoo/CapybaraShop, Mods/StardewZoo/Elephant, Mods/StardewZoo/BabyElephant, Mods/StardewZoo/ElephantShop, Mods/StardewZoo/Dinosaur, Mods/StardewZoo/BabyDinosaur, Mods/StardewZoo/DinosaurShop, Mods/StardewZoo/Gorilla, Mods/StardewZoo/BabyGorilla, Mods/StardewZoo/GorillaShop, Mods/StardewZoo/Raccoon, Mods/StardewZoo/BabyRaccoon, Mods/StardewZoo/RaccoonShop, Mods/StardewZoo/Alpaca, Mods/StardewZoo/BabyAlpaca, Mods/StardewZoo/AlpacaShop, Mods/StardewZoo/SeaLion, Mods/StardewZoo/BabySeaLion, Mods/StardewZoo/SeaLionShop, Mods/StardewZoo/Bear, Mods/StardewZoo/BabyBear, Mods/StardewZoo/BearShop, Mods/StardewZoo/Flamingo, Mods/StardewZoo/BabyFlamingo, Mods/StardewZoo/FlamingoShop, Mods/StardewZoo/FlamingoFly, Mods/StardewZoo/Owl, Mods/StardewZoo/BabyOwl, Mods/StardewZoo/OwlShop, Mods/StardewZoo/OwlFly, Mods/StardewZoo/Deer, Mods/StardewZoo/BabyDeer, Mods/StardewZoo/DeerShop, Mods/StardewZoo/NightHeron, Mods/StardewZoo/BabyNightHeron, Mods/StardewZoo/NightHeronShop, Mods/StardewZoo/NightHeronFly",
       "FromFile": "assets/{{TargetWithoutPath}}.png"
     },
     {
@@ -234,12 +234,20 @@
           "ShowInSummitCredits": false,
           "EmoteOffset": {
             "X": 0,
-            "Y": -16
+            "Y": -12
           },
           "UpDownPetHitboxTileSize": "1, 1",
           "LeftRightPetHitboxTileSize": "1, 1",
           "BabyUpDownPetHitboxTileSize": "1, 1",
-          "BabyLeftRightPetHitboxTileSize": "1, 1"
+          "BabyLeftRightPetHitboxTileSize": "1, 1",
+          "Shadow": {
+            "Visible": true,
+            "Scale": 2.8
+          },
+          "ShadowWhenBaby": {
+            "Visible": true,
+            "Scale": 2.0
+          }
         },
         "StardewZoo.Panda": {
           "DisplayName": "{{i18n:animal.Panda.name}}",
@@ -270,19 +278,28 @@
           "BabyTexture": "Mods/StardewZoo/BabyPanda",
           "UseFlippedRightForLeft": true,
           "UseDoubleUniqueAnimationFrames": false,
-          "SpriteWidth": 32,
-          "SpriteHeight": 32,
+          "SpriteWidth": 36,
+          "SpriteHeight": 36,
           "SleepFrame": 12,
           "GrassEatAmount": 4,
           "HappinessDrain": 6,
           "ShowInSummitCredits": false,
-          "Shadow": {
-            "Visible": false
+          "EmoteOffset": {
+            "X": 0,
+            "Y": -4
           },
-          "UpDownPetHitboxTileSize": "1.5, 1.75",
-          "LeftRightPetHitboxTileSize": "1.75, 1.25",
-          "BabyUpDownPetHitboxTileSize": "1, 1.75",
-          "BabyLeftRightPetHitboxTileSize": "1.75, 1"
+          "UpDownPetHitboxTileSize": "1.5, 2",
+          "LeftRightPetHitboxTileSize": "2, 2",
+          "BabyUpDownPetHitboxTileSize": "1, 1",
+          "BabyLeftRightPetHitboxTileSize": "1, 1",
+          "Shadow": {
+            "Visible": true,
+            "Scale": 4.4
+          },
+          "ShadowWhenBaby": {
+            "Visible": true,
+            "Scale": 2.4
+          }
         },
         "StardewZoo.Lion": {
           "DisplayName": "{{i18n:animal.Lion.name}}",
@@ -313,19 +330,28 @@
           "BabyTexture": "Mods/StardewZoo/BabyLion",
           "UseFlippedRightForLeft": true,
           "UseDoubleUniqueAnimationFrames": false,
-          "SpriteWidth": 32,
-          "SpriteHeight": 32,
+          "SpriteWidth": 44,
+          "SpriteHeight": 44,
           "SleepFrame": 12,
           "GrassEatAmount": 4,
           "HappinessDrain": 6,
           "ShowInSummitCredits": false,
-          "Shadow": {
-            "Visible": false
+          "EmoteOffset": {
+            "X": 0,
+            "Y": 4
           },
-          "UpDownPetHitboxTileSize": "1.5, 1.75",
-          "LeftRightPetHitboxTileSize": "1.75, 1.25",
-          "BabyUpDownPetHitboxTileSize": "1, 1.75",
-          "BabyLeftRightPetHitboxTileSize": "1.75, 1"
+          "UpDownPetHitboxTileSize": "1.5, 2.5",
+          "LeftRightPetHitboxTileSize": "2.5, 2.25",
+          "BabyUpDownPetHitboxTileSize": "1, 1.5",
+          "BabyLeftRightPetHitboxTileSize": "1.5, 1.25",
+          "Shadow": {
+            "Visible": true,
+            "Scale": 5.2
+          },
+          "ShadowWhenBaby": {
+            "Visible": true,
+            "Scale": 3.2
+          }
         },
         "StardewZoo.Giraffe": {
           "DisplayName": "{{i18n:animal.Giraffe.name}}",
@@ -356,19 +382,28 @@
           "BabyTexture": "Mods/StardewZoo/BabyGiraffe",
           "UseFlippedRightForLeft": true,
           "UseDoubleUniqueAnimationFrames": false,
-          "SpriteWidth": 32,
-          "SpriteHeight": 32,
+          "SpriteWidth": 72,
+          "SpriteHeight": 72,
           "SleepFrame": 12,
           "GrassEatAmount": 4,
           "HappinessDrain": 6,
           "ShowInSummitCredits": false,
-          "Shadow": {
-            "Visible": false
+          "EmoteOffset": {
+            "X": 0,
+            "Y": 0
           },
-          "UpDownPetHitboxTileSize": "1.5, 1.75",
-          "LeftRightPetHitboxTileSize": "1.75, 1.25",
-          "BabyUpDownPetHitboxTileSize": "1, 1.75",
-          "BabyLeftRightPetHitboxTileSize": "1.75, 1"
+          "UpDownPetHitboxTileSize": "2, 4.25",
+          "LeftRightPetHitboxTileSize": "4, 4.25",
+          "BabyUpDownPetHitboxTileSize": "1.25, 2.5",
+          "BabyLeftRightPetHitboxTileSize": "2.25, 2.5",
+          "Shadow": {
+            "Visible": true,
+            "Scale": 6.8
+          },
+          "ShadowWhenBaby": {
+            "Visible": true,
+            "Scale": 4.0
+          }
         },
         "StardewZoo.Monkey": {
           "DisplayName": "{{i18n:animal.Monkey.name}}",
@@ -399,20 +434,28 @@
           "BabyTexture": "Mods/StardewZoo/BabyMonkey",
           "UseFlippedRightForLeft": true,
           "UseDoubleUniqueAnimationFrames": false,
-          "SpriteWidth": 16,
-          "SpriteHeight": 16,
+          "SpriteWidth": 24,
+          "SpriteHeight": 24,
           "SleepFrame": 12,
           "GrassEatAmount": 2,
           "HappinessDrain": 7,
           "ShowInSummitCredits": false,
           "EmoteOffset": {
             "X": 0,
-            "Y": -16
+            "Y": 4
           },
           "UpDownPetHitboxTileSize": "1, 1",
-          "LeftRightPetHitboxTileSize": "1, 1",
+          "LeftRightPetHitboxTileSize": "1.25, 1",
           "BabyUpDownPetHitboxTileSize": "1, 1",
-          "BabyLeftRightPetHitboxTileSize": "1, 1"
+          "BabyLeftRightPetHitboxTileSize": "1, 1",
+          "Shadow": {
+            "Visible": true,
+            "Scale": 3.6
+          },
+          "ShadowWhenBaby": {
+            "Visible": true,
+            "Scale": 2.4
+          }
         },
         "StardewZoo.Capybara": {
           "DisplayName": "{{i18n:animal.Capybara.name}}",
@@ -443,19 +486,38 @@
           "BabyTexture": "Mods/StardewZoo/BabyCapybara",
           "UseFlippedRightForLeft": true,
           "UseDoubleUniqueAnimationFrames": false,
-          "SpriteWidth": 32,
-          "SpriteHeight": 32,
+          "SpriteWidth": 28,
+          "SpriteHeight": 28,
           "SleepFrame": 12,
-          "GrassEatAmount": 4,
-          "HappinessDrain": 6,
+          "GrassEatAmount": 2,
+          "HappinessDrain": 7,
           "ShowInSummitCredits": false,
+          "EmoteOffset": {
+            "X": 0,
+            "Y": 4
+          },
+          "UpDownPetHitboxTileSize": "1, 1.5",
+          "LeftRightPetHitboxTileSize": "1.5, 1.25",
+          "BabyUpDownPetHitboxTileSize": "1, 1",
+          "BabyLeftRightPetHitboxTileSize": "1, 1",
           "Shadow": {
+            "Visible": true,
+            "Scale": 3.6
+          },
+          "ShadowWhenBaby": {
+            "Visible": true,
+            "Scale": 2.4
+          },
+          "SwimOffset": {
+            "X": 0,
+            "Y": 140
+          },
+          "ShadowWhenAdultSwims": {
             "Visible": false
           },
-          "UpDownPetHitboxTileSize": "1.5, 1.75",
-          "LeftRightPetHitboxTileSize": "1.75, 1.25",
-          "BabyUpDownPetHitboxTileSize": "1, 1.75",
-          "BabyLeftRightPetHitboxTileSize": "1.75, 1"
+          "ShadowWhenBabySwims": {
+            "Visible": false
+          }
         },
         "StardewZoo.Elephant": {
           "DisplayName": "{{i18n:animal.Elephant.name}}",
@@ -486,19 +548,28 @@
           "BabyTexture": "Mods/StardewZoo/BabyElephant",
           "UseFlippedRightForLeft": true,
           "UseDoubleUniqueAnimationFrames": false,
-          "SpriteWidth": 32,
-          "SpriteHeight": 32,
+          "SpriteWidth": 64,
+          "SpriteHeight": 64,
           "SleepFrame": 12,
           "GrassEatAmount": 4,
           "HappinessDrain": 6,
           "ShowInSummitCredits": false,
-          "Shadow": {
-            "Visible": false
+          "EmoteOffset": {
+            "X": 0,
+            "Y": 44
           },
-          "UpDownPetHitboxTileSize": "1.5, 1.75",
-          "LeftRightPetHitboxTileSize": "1.75, 1.25",
-          "BabyUpDownPetHitboxTileSize": "1, 1.75",
-          "BabyLeftRightPetHitboxTileSize": "1.75, 1"
+          "UpDownPetHitboxTileSize": "3.75, 3",
+          "LeftRightPetHitboxTileSize": "3.75, 3",
+          "BabyUpDownPetHitboxTileSize": "2, 1.75",
+          "BabyLeftRightPetHitboxTileSize": "2, 1.5",
+          "Shadow": {
+            "Visible": true,
+            "Scale": 12.0
+          },
+          "ShadowWhenBaby": {
+            "Visible": true,
+            "Scale": 6.8
+          }
         },
         "StardewZoo.Dinosaur": {
           "DisplayName": "{{i18n:animal.Dinosaur.name}}",
@@ -529,19 +600,28 @@
           "BabyTexture": "Mods/StardewZoo/BabyDinosaur",
           "UseFlippedRightForLeft": true,
           "UseDoubleUniqueAnimationFrames": false,
-          "SpriteWidth": 32,
-          "SpriteHeight": 32,
+          "SpriteWidth": 72,
+          "SpriteHeight": 72,
           "SleepFrame": 12,
           "GrassEatAmount": 4,
           "HappinessDrain": 6,
           "ShowInSummitCredits": false,
-          "Shadow": {
-            "Visible": false
+          "EmoteOffset": {
+            "X": 0,
+            "Y": 20
           },
-          "UpDownPetHitboxTileSize": "1.5, 1.75",
-          "LeftRightPetHitboxTileSize": "1.75, 1.25",
-          "BabyUpDownPetHitboxTileSize": "1, 1.75",
-          "BabyLeftRightPetHitboxTileSize": "1.75, 1"
+          "UpDownPetHitboxTileSize": "2, 4",
+          "LeftRightPetHitboxTileSize": "4.5, 3.25",
+          "BabyUpDownPetHitboxTileSize": "1.25, 2.25",
+          "BabyLeftRightPetHitboxTileSize": "2.5, 2",
+          "Shadow": {
+            "Visible": true,
+            "Scale": 6.8
+          },
+          "ShadowWhenBaby": {
+            "Visible": true,
+            "Scale": 4.0
+          }
         },
         "StardewZoo.Gorilla": {
           "DisplayName": "{{i18n:animal.Gorilla.name}}",
@@ -572,19 +652,28 @@
           "BabyTexture": "Mods/StardewZoo/BabyGorilla",
           "UseFlippedRightForLeft": true,
           "UseDoubleUniqueAnimationFrames": false,
-          "SpriteWidth": 32,
-          "SpriteHeight": 32,
+          "SpriteWidth": 44,
+          "SpriteHeight": 44,
           "SleepFrame": 12,
           "GrassEatAmount": 4,
           "HappinessDrain": 6,
           "ShowInSummitCredits": false,
-          "Shadow": {
-            "Visible": false
+          "EmoteOffset": {
+            "X": 0,
+            "Y": 4
           },
-          "UpDownPetHitboxTileSize": "1.5, 1.75",
-          "LeftRightPetHitboxTileSize": "1.75, 1.25",
-          "BabyUpDownPetHitboxTileSize": "1, 1.75",
-          "BabyLeftRightPetHitboxTileSize": "1.75, 1"
+          "UpDownPetHitboxTileSize": "2, 2.5",
+          "LeftRightPetHitboxTileSize": "2.5, 2",
+          "BabyUpDownPetHitboxTileSize": "1.25, 1.5",
+          "BabyLeftRightPetHitboxTileSize": "1.5, 1.25",
+          "Shadow": {
+            "Visible": true,
+            "Scale": 6.8
+          },
+          "ShadowWhenBaby": {
+            "Visible": true,
+            "Scale": 4.0
+          }
         },
         "StardewZoo.Raccoon": {
           "DisplayName": "{{i18n:animal.Raccoon.name}}",
@@ -623,12 +712,20 @@
           "ShowInSummitCredits": false,
           "EmoteOffset": {
             "X": 0,
-            "Y": -16
+            "Y": -8
           },
           "UpDownPetHitboxTileSize": "1, 1",
           "LeftRightPetHitboxTileSize": "1, 1",
           "BabyUpDownPetHitboxTileSize": "1, 1",
-          "BabyLeftRightPetHitboxTileSize": "1, 1"
+          "BabyLeftRightPetHitboxTileSize": "1, 1",
+          "Shadow": {
+            "Visible": true,
+            "Scale": 2.4
+          },
+          "ShadowWhenBaby": {
+            "Visible": true,
+            "Scale": 1.6
+          }
         },
         "StardewZoo.Alpaca": {
           "DisplayName": "{{i18n:animal.Alpaca.name}}",
@@ -659,19 +756,28 @@
           "BabyTexture": "Mods/StardewZoo/BabyAlpaca",
           "UseFlippedRightForLeft": true,
           "UseDoubleUniqueAnimationFrames": false,
-          "SpriteWidth": 32,
-          "SpriteHeight": 32,
+          "SpriteWidth": 36,
+          "SpriteHeight": 36,
           "SleepFrame": 12,
           "GrassEatAmount": 4,
           "HappinessDrain": 6,
           "ShowInSummitCredits": false,
-          "Shadow": {
-            "Visible": false
+          "EmoteOffset": {
+            "X": 0,
+            "Y": -4
           },
-          "UpDownPetHitboxTileSize": "1.5, 1.75",
-          "LeftRightPetHitboxTileSize": "1.75, 1.25",
-          "BabyUpDownPetHitboxTileSize": "1, 1.75",
-          "BabyLeftRightPetHitboxTileSize": "1.75, 1"
+          "UpDownPetHitboxTileSize": "1.25, 2",
+          "LeftRightPetHitboxTileSize": "2, 2",
+          "BabyUpDownPetHitboxTileSize": "1, 1.25",
+          "BabyLeftRightPetHitboxTileSize": "1.25, 1",
+          "Shadow": {
+            "Visible": true,
+            "Scale": 4.0
+          },
+          "ShadowWhenBaby": {
+            "Visible": true,
+            "Scale": 2.4
+          }
         },
         "StardewZoo.SeaLion": {
           "DisplayName": "{{i18n:animal.SeaLion.name}}",
@@ -702,19 +808,38 @@
           "BabyTexture": "Mods/StardewZoo/BabySeaLion",
           "UseFlippedRightForLeft": true,
           "UseDoubleUniqueAnimationFrames": false,
-          "SpriteWidth": 32,
-          "SpriteHeight": 32,
+          "SpriteWidth": 36,
+          "SpriteHeight": 36,
           "SleepFrame": 12,
           "GrassEatAmount": 4,
           "HappinessDrain": 6,
           "ShowInSummitCredits": false,
+          "EmoteOffset": {
+            "X": 0,
+            "Y": 16
+          },
+          "UpDownPetHitboxTileSize": "2, 1.5",
+          "LeftRightPetHitboxTileSize": "2, 1.5",
+          "BabyUpDownPetHitboxTileSize": "1.25, 1",
+          "BabyLeftRightPetHitboxTileSize": "1.25, 1",
           "Shadow": {
+            "Visible": true,
+            "Scale": 6.8
+          },
+          "ShadowWhenBaby": {
+            "Visible": true,
+            "Scale": 4.0
+          },
+          "SwimOffset": {
+            "X": 0,
+            "Y": 180
+          },
+          "ShadowWhenAdultSwims": {
             "Visible": false
           },
-          "UpDownPetHitboxTileSize": "1.5, 1.75",
-          "LeftRightPetHitboxTileSize": "1.75, 1.25",
-          "BabyUpDownPetHitboxTileSize": "1, 1.75",
-          "BabyLeftRightPetHitboxTileSize": "1.75, 1"
+          "ShadowWhenBabySwims": {
+            "Visible": false
+          }
         },
         "StardewZoo.Bear": {
           "DisplayName": "{{i18n:animal.Bear.name}}",
@@ -745,19 +870,28 @@
           "BabyTexture": "Mods/StardewZoo/BabyBear",
           "UseFlippedRightForLeft": true,
           "UseDoubleUniqueAnimationFrames": false,
-          "SpriteWidth": 32,
-          "SpriteHeight": 32,
+          "SpriteWidth": 48,
+          "SpriteHeight": 48,
           "SleepFrame": 12,
           "GrassEatAmount": 4,
           "HappinessDrain": 6,
           "ShowInSummitCredits": false,
-          "Shadow": {
-            "Visible": false
+          "EmoteOffset": {
+            "X": 0,
+            "Y": 16
           },
-          "UpDownPetHitboxTileSize": "1.5, 1.75",
-          "LeftRightPetHitboxTileSize": "1.75, 1.25",
-          "BabyUpDownPetHitboxTileSize": "1, 1.75",
-          "BabyLeftRightPetHitboxTileSize": "1.75, 1"
+          "UpDownPetHitboxTileSize": "2, 2.5",
+          "LeftRightPetHitboxTileSize": "2.75, 2.25",
+          "BabyUpDownPetHitboxTileSize": "1, 1.25",
+          "BabyLeftRightPetHitboxTileSize": "1.5, 1.25",
+          "Shadow": {
+            "Visible": true,
+            "Scale": 6.0
+          },
+          "ShadowWhenBaby": {
+            "Visible": true,
+            "Scale": 3.2
+          }
         },
         "StardewZoo.Flamingo": {
           "DisplayName": "{{i18n:animal.Flamingo.name}}",
@@ -788,19 +922,38 @@
           "BabyTexture": "Mods/StardewZoo/BabyFlamingo",
           "UseFlippedRightForLeft": true,
           "UseDoubleUniqueAnimationFrames": false,
-          "SpriteWidth": 32,
-          "SpriteHeight": 32,
+          "SpriteWidth": 36,
+          "SpriteHeight": 36,
           "SleepFrame": 12,
           "GrassEatAmount": 4,
           "HappinessDrain": 6,
           "ShowInSummitCredits": false,
+          "EmoteOffset": {
+            "X": 0,
+            "Y": 0
+          },
+          "UpDownPetHitboxTileSize": "1, 2",
+          "LeftRightPetHitboxTileSize": "1.75, 1.75",
+          "BabyUpDownPetHitboxTileSize": "1, 1",
+          "BabyLeftRightPetHitboxTileSize": "1, 1",
           "Shadow": {
+            "Visible": true,
+            "Scale": 3.2
+          },
+          "ShadowWhenBaby": {
+            "Visible": true,
+            "Scale": 2.0
+          },
+          "SwimOffset": {
+            "X": 0,
+            "Y": 180
+          },
+          "ShadowWhenAdultSwims": {
             "Visible": false
           },
-          "UpDownPetHitboxTileSize": "1.5, 1.75",
-          "LeftRightPetHitboxTileSize": "1.75, 1.25",
-          "BabyUpDownPetHitboxTileSize": "1, 1.75",
-          "BabyLeftRightPetHitboxTileSize": "1.75, 1"
+          "ShadowWhenBabySwims": {
+            "Visible": false
+          }
         },
         "StardewZoo.Owl": {
           "DisplayName": "{{i18n:animal.Owl.name}}",
@@ -839,12 +992,20 @@
           "ShowInSummitCredits": false,
           "EmoteOffset": {
             "X": 0,
-            "Y": -16
+            "Y": -8
           },
           "UpDownPetHitboxTileSize": "1, 1",
           "LeftRightPetHitboxTileSize": "1, 1",
           "BabyUpDownPetHitboxTileSize": "1, 1",
-          "BabyLeftRightPetHitboxTileSize": "1, 1"
+          "BabyLeftRightPetHitboxTileSize": "1, 1",
+          "Shadow": {
+            "Visible": true,
+            "Scale": 2.4
+          },
+          "ShadowWhenBaby": {
+            "Visible": true,
+            "Scale": 1.6
+          }
         },
         "StardewZoo.Deer": {
           "DisplayName": "{{i18n:animal.Deer.name}}",
@@ -875,19 +1036,28 @@
           "BabyTexture": "Mods/StardewZoo/BabyDeer",
           "UseFlippedRightForLeft": true,
           "UseDoubleUniqueAnimationFrames": false,
-          "SpriteWidth": 32,
-          "SpriteHeight": 32,
+          "SpriteWidth": 36,
+          "SpriteHeight": 36,
           "SleepFrame": 12,
           "GrassEatAmount": 4,
           "HappinessDrain": 6,
           "ShowInSummitCredits": false,
-          "Shadow": {
-            "Visible": false
+          "EmoteOffset": {
+            "X": 0,
+            "Y": -16
           },
-          "UpDownPetHitboxTileSize": "1.5, 1.75",
-          "LeftRightPetHitboxTileSize": "1.75, 1.25",
-          "BabyUpDownPetHitboxTileSize": "1, 1.75",
-          "BabyLeftRightPetHitboxTileSize": "1.75, 1"
+          "UpDownPetHitboxTileSize": "1.5, 2.25",
+          "LeftRightPetHitboxTileSize": "2, 2.25",
+          "BabyUpDownPetHitboxTileSize": "1, 1.25",
+          "BabyLeftRightPetHitboxTileSize": "1, 1.25",
+          "Shadow": {
+            "Visible": true,
+            "Scale": 4.4
+          },
+          "ShadowWhenBaby": {
+            "Visible": true,
+            "Scale": 2.8
+          }
         },
         "StardewZoo.NightHeron": {
           "DisplayName": "{{i18n:animal.NightHeron.name}}",
@@ -918,19 +1088,38 @@
           "BabyTexture": "Mods/StardewZoo/BabyNightHeron",
           "UseFlippedRightForLeft": true,
           "UseDoubleUniqueAnimationFrames": false,
-          "SpriteWidth": 32,
-          "SpriteHeight": 32,
+          "SpriteWidth": 24,
+          "SpriteHeight": 24,
           "SleepFrame": 12,
-          "GrassEatAmount": 4,
-          "HappinessDrain": 6,
+          "GrassEatAmount": 2,
+          "HappinessDrain": 7,
           "ShowInSummitCredits": false,
+          "EmoteOffset": {
+            "X": 0,
+            "Y": -4
+          },
+          "UpDownPetHitboxTileSize": "1, 1.25",
+          "LeftRightPetHitboxTileSize": "1.25, 1.25",
+          "BabyUpDownPetHitboxTileSize": "1, 1",
+          "BabyLeftRightPetHitboxTileSize": "1, 1",
           "Shadow": {
+            "Visible": true,
+            "Scale": 2.4
+          },
+          "ShadowWhenBaby": {
+            "Visible": true,
+            "Scale": 1.6
+          },
+          "SwimOffset": {
+            "X": 0,
+            "Y": 120
+          },
+          "ShadowWhenAdultSwims": {
             "Visible": false
           },
-          "UpDownPetHitboxTileSize": "1.5, 1.75",
-          "LeftRightPetHitboxTileSize": "1.75, 1.25",
-          "BabyUpDownPetHitboxTileSize": "1, 1.75",
-          "BabyLeftRightPetHitboxTileSize": "1.75, 1"
+          "ShadowWhenBabySwims": {
+            "Visible": false
+          }
         }
       }
     }

@@ -3,37 +3,85 @@
 import json
 from pathlib import Path
 
+from PIL import Image
+
+from animal_sizes import CLIMBERS, FLIERS, SWIMMERS, frame
+
 ROOT = Path(__file__).resolve().parent.parent
+ASSETS = ROOT / "[CP] Stardew Zoo" / "assets"
 ANIMALS = [
-    # name, purchase (half shop), shop, size, days
-    ("Penguin", 1500, 3000, 16, 3),
-    ("Panda", 3000, 6000, 32, 5),
-    ("Lion", 4000, 8000, 32, 5),
-    ("Giraffe", 5000, 10000, 32, 5),
-    ("Monkey", 2000, 4000, 16, 3),
-    ("Capybara", 2500, 5000, 32, 5),
-    ("Elephant", 7500, 15000, 32, 5),
-    ("Dinosaur", 10000, 20000, 32, 5),
-    ("Gorilla", 6000, 12000, 32, 5),
-    ("Raccoon", 1250, 2500, 16, 3),
-    ("Alpaca", 2250, 4500, 32, 5),
-    ("SeaLion", 3500, 7000, 32, 5),
-    ("Bear", 4500, 9000, 32, 5),
-    ("Flamingo", 2750, 5500, 32, 5),
-    ("Owl", 2250, 4500, 16, 3),
-    ("Deer", 3000, 6000, 32, 5),
-    ("NightHeron", 2500, 5000, 32, 5),
+    # name, purchase (half shop), shop, days; sprite sizes come from animal_sizes.py
+    ("Penguin", 1500, 3000, 3),
+    ("Panda", 3000, 6000, 5),
+    ("Lion", 4000, 8000, 5),
+    ("Giraffe", 5000, 10000, 5),
+    ("Monkey", 2000, 4000, 3),
+    ("Capybara", 2500, 5000, 5),
+    ("Elephant", 7500, 15000, 5),
+    ("Dinosaur", 10000, 20000, 5),
+    ("Gorilla", 6000, 12000, 5),
+    ("Raccoon", 1250, 2500, 3),
+    ("Alpaca", 2250, 4500, 5),
+    ("SeaLion", 3500, 7000, 5),
+    ("Bear", 4500, 9000, 5),
+    ("Flamingo", 2750, 5500, 5),
+    ("Owl", 2250, 4500, 3),
+    ("Deer", 3000, 6000, 5),
+    ("NightHeron", 2500, 5000, 5),
 ]
 
-TEXTURES = [
-    "Zoo", "BigZoo", "DeluxeZoo", "zoo_tiles",
-]
-for name, *_ in ANIMALS:
-    TEXTURES += [name, f"Baby{name}", f"{name}Shop"]
+
+def texture_names(name):
+    names = [name, f"Baby{name}", f"{name}Shop"]
+    if name in FLIERS:
+        names.append(f"{name}Fly")
+    if name in CLIMBERS:
+        names.append(f"{name}Climb")
+    return names
 
 
-def animal_entry(name, purchase, size, days):
-    large = size == 32
+def content_box(sheet, index, size):
+    """Bounding box (left, top, right, bottom) of frame `index` in a 4-column sheet, in frame pixels."""
+    x, y = (index % 4) * size, (index // 4) * size
+    return sheet.crop((x, y, x + size, y + size)).getbbox()
+
+
+def tiles(pixels):
+    """Pixels to a pet-hitbox tile size, rounded to quarter tiles, at least one tile."""
+    return max(1.0, round(pixels / 16 * 4) / 4)
+
+
+def sprite_metrics(name):
+    """Emote offset, pet hitboxes, and shadow scales measured from the rendered sheets."""
+    size = frame(name)
+    adult = Image.open(ASSETS / f"{name}.png")
+    baby = Image.open(ASSETS / f"Baby{name}.png")
+    a_front, a_side = content_box(adult, 0, size), content_box(adult, 4, size)
+    b_front, b_side = content_box(baby, 0, size), content_box(baby, 4, size)
+
+    def hitbox(box):
+        return f"{tiles(box[2] - box[0]):g}, {tiles(box[3] - box[1]):g}"
+
+    def shadow(box):
+        # Game1.shadowTexture is 12px wide; aim for ~60% of the body's width.
+        return round(max(1.5, (box[2] - box[0]) * 0.6 / 3), 1)
+
+    top = min(a_front[1], a_side[1])
+    return {
+        # the emote's bottom edge sits 8px (screen) into the top of the drawing
+        "EmoteOffset": {"X": 0, "Y": top * 4 - 16},
+        "UpDownPetHitboxTileSize": hitbox(a_front),
+        "LeftRightPetHitboxTileSize": hitbox(a_side),
+        "BabyUpDownPetHitboxTileSize": hitbox(b_front),
+        "BabyLeftRightPetHitboxTileSize": hitbox(b_side),
+        "Shadow": {"Visible": True, "Scale": shadow(a_front)},
+        "ShadowWhenBaby": {"Visible": True, "Scale": shadow(b_front)},
+    }
+
+
+def animal_entry(name, purchase, days):
+    size = frame(name)
+    large = size >= 32
     entry = {
         "DisplayName": f"{{{{i18n:animal.{name}.name}}}}",
         "House": "StardewZoo.Zoo",
@@ -65,18 +113,12 @@ def animal_entry(name, purchase, size, days):
         "HappinessDrain": 6 if large else 7,
         "ShowInSummitCredits": False,
     }
-    if large:
-        entry["Shadow"] = {"Visible": False}
-        entry["UpDownPetHitboxTileSize"] = "1.5, 1.75"
-        entry["LeftRightPetHitboxTileSize"] = "1.75, 1.25"
-        entry["BabyUpDownPetHitboxTileSize"] = "1, 1.75"
-        entry["BabyLeftRightPetHitboxTileSize"] = "1.75, 1"
-    else:
-        entry["EmoteOffset"] = {"X": 0, "Y": -16}
-        entry["UpDownPetHitboxTileSize"] = "1, 1"
-        entry["LeftRightPetHitboxTileSize"] = "1, 1"
-        entry["BabyUpDownPetHitboxTileSize"] = "1, 1"
-        entry["BabyLeftRightPetHitboxTileSize"] = "1, 1"
+    entry.update(sprite_metrics(name))
+    if name in SWIMMERS:
+        # rows 5-9 are the same frames sunk into the water; the mod sets isSwimming on pond tiles
+        entry["SwimOffset"] = {"X": 0, "Y": 5 * size}
+        entry["ShadowWhenAdultSwims"] = {"Visible": False}
+        entry["ShadowWhenBabySwims"] = {"Visible": False}
     return entry
 
 
@@ -122,7 +164,7 @@ def building(tier):
 def main():
     animal_targets = []
     for name, *_ in ANIMALS:
-        animal_targets += [f"Mods/StardewZoo/{name}", f"Mods/StardewZoo/Baby{name}", f"Mods/StardewZoo/{name}Shop"]
+        animal_targets += [f"Mods/StardewZoo/{texture}" for texture in texture_names(name)]
     content = {
         "Format": "2.9.0",
         "Changes": [
@@ -161,8 +203,8 @@ def main():
                 "Action": "EditData",
                 "Target": "Data/FarmAnimals",
                 "Entries": {
-                    f"StardewZoo.{name}": animal_entry(name, purchase, size, days)
-                    for name, purchase, shop, size, days in ANIMALS
+                    f"StardewZoo.{name}": animal_entry(name, purchase, days)
+                    for name, purchase, shop, days in ANIMALS
                 },
             },
         ],
