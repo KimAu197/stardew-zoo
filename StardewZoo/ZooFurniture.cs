@@ -61,6 +61,11 @@ internal sealed class ZooFurniture
         Translation text = instance.translation.Get($"furniture.{__instance.QualifiedItemId[ZooIds.FurniturePrefix.Length..]}.description");
         if (text.HasValue())
             __result = text;
+        if (ZooPlaques.IsPlaque(__instance.QualifiedItemId))
+        {
+            string separator = __result.Length > 0 && __result[^1] < 128 ? " " : "";
+            __result += separator + instance.translation.Get("plaque.description-hint");
+        }
     }
 
     /// <summary>Furniture pieces in a location, for the zoo decor bonus.</summary>

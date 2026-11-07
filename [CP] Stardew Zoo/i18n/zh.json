@@ -67,5 +67,7 @@
   "furniture.PlaquePrehistoric.name": "展区说明牌：史前",
   "furniture.Turnstile.name": "入口闸机",
   "furniture.ZooArch.name": "动物园拱门",
-  "furniture.Fountain.name": "动物园喷泉"
+  "furniture.Fountain.name": "动物园喷泉",
+  "furniture.PlaqueBlank.name": "空白说明牌",
+  "furniture.NoticeBoard.name": "立式告示板"
 }

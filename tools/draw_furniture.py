@@ -56,6 +56,8 @@ ITEMS = [
     ("Turnstile", "decor", (1, 2), (1, 1), 750),
     ("ZooArch", "decor", (4, 3), (4, 1), 4000),
     ("Fountain", "decor", (3, 3), (3, 2), 5000),
+    ("PlaqueBlank", "decor", (1, 1), (1, 1), 350),
+    ("NoticeBoard", "decor", (2, 2), (2, 1), 900),
 ]
 
 
@@ -375,6 +377,48 @@ def turnstile():
     return im
 
 
+def blank_plaque():
+    """The habitat plaque's frame and legs with a blank cream face, two nails and a faint pencil line."""
+    im = dt.canvas(1, 1)
+    d = ImageDraw.Draw(im)
+    for x in (3, 11):
+        d.rectangle((x, 9, x + 1, 15), fill=dt.WOOD[2], outline=dt.INK)
+    d.rectangle((0, 0, 15, 11), fill=dt.WOOD[3], outline=dt.INK)
+    d.rectangle((1, 1, 14, 10), fill=dt.CREAM)
+    d.line((1, 1, 14, 1), fill=dt.WOOD[5])
+    d.line((1, 10, 14, 10), fill=dt.mix(dt.CREAM, dt.WOOD[3], 0.5))
+    for x in (2, 13):
+        d.point((x, 3), fill=dt.ROCK[2])
+    d.line((4, 6, 9, 6), fill=dt.mix(dt.CREAM, dt.WOOD[2], 0.35))
+    return im
+
+
+def notice_board():
+    """Roofed cork notice board on two posts, with pinned notes."""
+    im = dt.canvas(2, 2)
+    d = ImageDraw.Draw(im)
+    cork, cork_dark = dt.C("#c9995c"), dt.C("#a87a44")
+    for x in (4, 25):
+        d.rectangle((x, 8, x + 2, 31), fill=dt.WOOD[2], outline=dt.INK)
+        d.line((x + 1, 9, x + 1, 30), fill=dt.WOOD[4])
+    d.rectangle((2, 8, 29, 24), fill=dt.WOOD[3], outline=dt.INK)
+    d.line((3, 9, 28, 9), fill=dt.WOOD[5])
+    d.rectangle((4, 11, 27, 22), fill=cork)
+    for x, y in ((6, 13), (19, 20), (24, 12), (11, 21)):
+        d.point((x, y), fill=cork_dark)
+    d.rectangle((6, 12, 13, 19), fill=dt.CREAM, outline=dt.mix(dt.CREAM, dt.INK, 0.25))
+    d.rectangle((16, 13, 25, 20), fill=dt.C("#fff3b0"), outline=dt.mix(dt.C("#fff3b0"), dt.INK, 0.25))
+    for y in (14, 16):
+        d.line((8, y, 11, y), fill=dt.mix(dt.CREAM, dt.INK, 0.35))
+    d.line((18, 15, 23, 15), fill=dt.mix(dt.C("#fff3b0"), dt.INK, 0.35))
+    d.point((9, 12), fill=dt.RED[2])
+    d.point((20, 13), fill=dt.C("#3a86c8"))
+    d.polygon([(0, 8), (4, 2), (27, 2), (31, 8)], fill=dt.RED[2], outline=dt.INK)
+    d.line((5, 3, 26, 3), fill=dt.RED[3])
+    d.line((1, 7, 30, 7), fill=dt.RED[1])
+    return im
+
+
 DRAWERS = {
     "Bench": bench,
     "PenguinStatue": penguin_statue,
@@ -394,6 +438,8 @@ DRAWERS = {
     "Turnstile": turnstile,
     "ZooArch": dt.draw_arch,
     "Fountain": big_fountain,
+    "PlaqueBlank": blank_plaque,
+    "NoticeBoard": notice_board,
 }
 
 

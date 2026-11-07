@@ -21,6 +21,7 @@
     <Compile Include="..\StardewZoo\VisitorSpawnPlanner.cs" Link="Linked\VisitorSpawnPlanner.cs" />
     <Compile Include="..\StardewZoo\ZooDecor.cs" Link="Linked\ZooDecor.cs" />
     <Compile Include="..\StardewZoo\FurnitureLayout.cs" Link="Linked\FurnitureLayout.cs" />
+    <Compile Include="..\StardewZoo\ZooPlaques.cs" Link="Linked\ZooPlaques.cs" />
   </ItemGroup>
 
   <ItemGroup>

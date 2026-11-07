@@ -13,6 +13,8 @@ internal sealed class VisitorManager
     private const string NamePrefix = "StardewZooVisitor_";
     private const int LeaveDelayTicks = 150;
     private const int EmoteCooldownTicks = 60 * 25;
+    private const double PlaqueChatChance = 0.04;
+    private const int PlaqueChatLines = 4;
 
     /// <summary>Vanilla non-villager sheets with a full 16x32 four-direction walk cycle in rows 0-3.</summary>
     private static readonly string[] Textures =
@@ -368,6 +370,12 @@ internal sealed class VisitorManager
             else if (mood == VisitorMood.Happy && Game1.random.NextDouble() < 0.04)
                 emote = Character.happyEmote;
 
+            if (emote < 0 && Game1.random.NextDouble() < PlaqueChatChance && PlaqueInteraction.TitleNear(location, npc.Tile, 2) is { } title)
+            {
+                npc.showTextAboveHead(this.translation.Get($"plaque.visitor.{Game1.random.Next(PlaqueChatLines) + 1}", new { title = DialogueSafe(title) }));
+                state.NextEmoteTick = Game1.ticks + EmoteCooldownTicks + Game1.random.Next(EmoteCooldownTicks);
+                continue;
+            }
             if (emote < 0)
                 continue;
             npc.doEmote(emote);

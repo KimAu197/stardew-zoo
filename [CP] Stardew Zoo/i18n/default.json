@@ -67,5 +67,7 @@
   "furniture.PlaquePrehistoric.name": "Habitat Plaque: Prehistoric",
   "furniture.Turnstile.name": "Turnstile",
   "furniture.ZooArch.name": "Zoo Entrance Arch",
-  "furniture.Fountain.name": "Zoo Fountain"
+  "furniture.Fountain.name": "Zoo Fountain",
+  "furniture.PlaqueBlank.name": "Blank Info Plaque",
+  "furniture.NoticeBoard.name": "Standing Notice Board"
 }

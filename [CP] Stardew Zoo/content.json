@@ -1161,7 +1161,9 @@
         "StardewZoo.PlaquePrehistoric": "StardewZoo.PlaquePrehistoric/decor/1 1/1 1/1/400/2/{{i18n:furniture.PlaquePrehistoric.name}}/38/Mods/StardewZoo/Furniture/false",
         "StardewZoo.Turnstile": "StardewZoo.Turnstile/decor/1 2/1 1/1/750/2/{{i18n:furniture.Turnstile.name}}/39/Mods/StardewZoo/Furniture/false",
         "StardewZoo.ZooArch": "StardewZoo.ZooArch/decor/4 3/4 1/1/4000/2/{{i18n:furniture.ZooArch.name}}/49/Mods/StardewZoo/Furniture/false",
-        "StardewZoo.Fountain": "StardewZoo.Fountain/decor/3 3/3 2/1/5000/2/{{i18n:furniture.Fountain.name}}/58/Mods/StardewZoo/Furniture/false"
+        "StardewZoo.Fountain": "StardewZoo.Fountain/decor/3 3/3 2/1/5000/2/{{i18n:furniture.Fountain.name}}/58/Mods/StardewZoo/Furniture/false",
+        "StardewZoo.PlaqueBlank": "StardewZoo.PlaqueBlank/decor/1 1/1 1/1/350/2/{{i18n:furniture.PlaqueBlank.name}}/53/Mods/StardewZoo/Furniture/false",
+        "StardewZoo.NoticeBoard": "StardewZoo.NoticeBoard/decor/2 2/2 1/1/900/2/{{i18n:furniture.NoticeBoard.name}}/61/Mods/StardewZoo/Furniture/false"
       }
     },
     {
@@ -1312,6 +1314,16 @@
           "Id": "StardewZoo.Fountain",
           "ItemId": "(F)StardewZoo.Fountain",
           "Price": 5000
+        },
+        "StardewZoo.PlaqueBlank": {
+          "Id": "StardewZoo.PlaqueBlank",
+          "ItemId": "(F)StardewZoo.PlaqueBlank",
+          "Price": 350
+        },
+        "StardewZoo.NoticeBoard": {
+          "Id": "StardewZoo.NoticeBoard",
+          "ItemId": "(F)StardewZoo.NoticeBoard",
+          "Price": 900
         }
       }
     }
