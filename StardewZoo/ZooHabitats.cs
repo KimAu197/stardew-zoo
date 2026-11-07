@@ -43,6 +43,8 @@ public static class ZooHabitats
         [ZooIds.Penguin] = Ice,
         [ZooIds.SeaLion] = Water,
         [ZooIds.Capybara] = Water,
+        [ZooIds.Flamingo] = Water,
+        [ZooIds.NightHeron] = Water,
         [ZooIds.Lion] = Savanna,
         [ZooIds.Giraffe] = Savanna,
         [ZooIds.Elephant] = Savanna,
@@ -52,6 +54,8 @@ public static class ZooHabitats
         [ZooIds.Panda] = Jungle,
         [ZooIds.Bear] = Forest,
         [ZooIds.Raccoon] = Forest,
+        [ZooIds.Owl] = Forest,
+        [ZooIds.Deer] = Forest,
         [ZooIds.Dinosaur] = Prehistoric
     };
 

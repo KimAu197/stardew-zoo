@@ -1130,6 +1130,307 @@ def bear_frames(u):
 
 
 # ---------------------------------------------------------------------------
+# Flamingo (32x32) — pink, long legs, curved beak
+# ---------------------------------------------------------------------------
+
+FL_PINK, FL_DARK, FL_WING, FL_BEAK = rgb("#f48fb1"), rgb("#ec407a"), rgb("#e91e8c"), rgb("#f6c177")
+FL_LEG, FL_LINE = rgb("#5a2e22"), rgb("#6b1d4a")
+
+
+def flamingo_front(u, phase=0, hd=0, hx=0, blink=False, one_leg=False):
+    a, b = lifts(phase)
+    return [
+        Part((rect(14, 18, 15, 22 if one_leg else 30 - b), FL_LEG),
+             (rect(18, 18, 19, 30 - a), FL_LEG), outline=FL_LINE, shade=False),
+        Part((ell(16, 16, 5.4, 4.2), FL_PINK), (both(ell(16, 16, 5.4, 4.2), lambda x, y: y > 17), FL_DARK), outline=FL_LINE),
+        Part((seg(16 + hx, 12, 16 + hx, 7 + hd, 2.2), FL_PINK), outline=FL_LINE),
+        Part((ell(16 + hx, 5.2 + hd, 3, 2.6), FL_PINK), outline=FL_LINE),
+        Part((seg(17 + hx, 6.2 + hd, 22 + hx, 9.5 + hd, 1.7), FL_BEAK),
+             (ell(22.5 + hx, 10 + hd, 1.5, 1.1), FL_DARK), outline=FL_LINE),
+        Part(*([] if blink else [(rect(14 + hx, 4.5 + hd, 15 + hx, 5.5 + hd), FL_LINE),
+                                 (rect(17 + hx, 4.5 + hd, 18 + hx, 5.5 + hd), FL_LINE)]), shade=False),
+    ]
+
+
+def flamingo_side(u, phase=0, hd=0):
+    a, b = lifts(phase)
+    return [
+        Part((rect(13, 19, 14, 29 - a), FL_LEG), (rect(16, 19, 17, 30 - b), FL_LEG), outline=FL_LINE, shade=False),
+        Part((ell(14, 17.5, 7, 4.4), FL_PINK), (both(ell(14, 17.5, 7, 4.4), lambda x, y: x < 10), FL_WING), outline=FL_LINE),
+        Part((seg(18, 15, 23, 8 + hd, 2.4), FL_PINK), outline=FL_LINE),
+        Part((ell(24, 7 + hd, 3, 2.6), FL_PINK), outline=FL_LINE),
+        Part((seg(25, 8 + hd, 30, 11 + hd, 1.7), FL_BEAK), (ell(30, 11.5 + hd, 1.5, 1.1), FL_DARK), outline=FL_LINE),
+        Part((rect(23, 6 + hd, 24, 7 + hd), FL_LINE), shade=False),
+    ]
+
+
+def flamingo_back(u, phase=0, hx=0):
+    a, b = lifts(phase)
+    return [
+        Part((ell(16 + hx, 6.5, 3, 2.6), FL_PINK), outline=FL_LINE),
+        Part((rect(15, 8, 17, 14), FL_PINK), outline=FL_LINE),
+        Part((ell(16, 18, 6.2, 5), FL_PINK), outline=FL_LINE),
+        Part((rect(14, 21, 16, 30 - a), FL_LEG), (rect(17, 21, 19, 30 - b), FL_LEG), outline=FL_LINE, shade=False),
+    ]
+
+
+def flamingo_sleep(u):
+    return [
+        Part((ell(14, 26, 3, 1.6), FL_LEG), (ell(20, 26, 3, 1.6), FL_LEG), outline=FL_LINE),
+        Part((ell(16, 22, 8, 4.2), FL_PINK), outline=FL_LINE),
+        Part((seg(20, 20, 24, 18, 2.2), FL_PINK), outline=FL_LINE),
+        Part((ell(25, 17, 3, 2.4), FL_PINK), outline=FL_LINE),
+        Part((seg(26, 18, 29, 20, 1.5), FL_BEAK), outline=FL_LINE),
+        Part((rect(23, 16, 25, 17), FL_LINE), shade=False),
+    ]
+
+
+def flamingo_frames(u):
+    return (
+        [flamingo_front(u, p) for p in range(4)]
+        + [flamingo_side(u, p) for p in range(4)]
+        + [flamingo_back(u, p) for p in range(4)]
+        + [flamingo_sleep(u), flamingo_front(u, one_leg=True), flamingo_side(u, hd=2), flamingo_back(u, hx=1)]
+        + [flamingo_front(u, hd=d, blink=d == 2) for d in (1, 2, 2, 1)]
+    )
+
+
+# ---------------------------------------------------------------------------
+# Owl (16x16) — round head, ear tufts, big eyes
+# ---------------------------------------------------------------------------
+
+OW_BROWN, OW_CREAM, OW_EYE, OW_LINE = rgb("#7a4e28"), rgb("#f0e0c0"), rgb("#f4d35e"), rgb("#2c160c")
+OW_TUFT, OW_BELLY = rgb("#5a3318"), rgb("#ead9b8")
+
+
+def owl_front(phase=0, hd=0, blink=False, wings=False):
+    a, b = lifts(phase)
+    fx = 1.4 if wings else 0
+    return [
+        Part((rect(5, 14 - a, 7, 15 - a), OW_TUFT), (rect(9, 14 - b, 11, 15 - b), OW_TUFT), outline=OW_LINE, shade=False),
+        Part((ell(8, 10.5, 4.6, 4), OW_BROWN), outline=OW_LINE),
+        Part((ell(3.4 - fx, 10, 1.4, 2.4), OW_BROWN), (ell(12.6 + fx, 10, 1.4, 2.4), OW_BROWN), outline=OW_LINE),
+        Part((ell(8, 6.2 + hd, 4.8, 4.2), OW_BROWN), outline=OW_LINE),
+        Part((ell(4.2, 3.2 + hd, 1.3, 1.6), OW_TUFT), (ell(11.8, 3.2 + hd, 1.3, 1.6), OW_TUFT), outline=OW_LINE),
+        Part((ell(8, 7 + hd, 3.6, 3), OW_CREAM), shade=False),
+        Part(
+            *([] if blink else [
+                (ell(6, 6.6 + hd, 1.5, 1.6), OW_EYE), (ell(10, 6.6 + hd, 1.5, 1.6), OW_EYE),
+                (rect(6, 6 + hd, 7, 8 + hd), OW_LINE), (rect(10, 6 + hd, 11, 8 + hd), OW_LINE),
+            ]),
+            (rect(7, 8.5 + hd, 9, 9.5 + hd), rgb("#d97706")),
+            shade=False,
+        ),
+    ]
+
+
+def owl_side(phase=0, hd=0):
+    a, b = lifts(phase)
+    return [
+        Part((rect(7, 14 - a, 9, 15 - a), OW_TUFT), (rect(9, 14 - b, 11, 15 - b), OW_TUFT), outline=OW_LINE, shade=False),
+        Part((ell(8, 10.5, 4.2, 4), OW_BROWN), outline=OW_LINE),
+        Part((ell(11, 6.2 + hd, 3.6, 3.6), OW_BROWN), outline=OW_LINE),
+        Part((ell(11.5, 3.4 + hd, 1.2, 1.5), OW_TUFT), outline=OW_LINE),
+        Part((ell(12.2, 6.8 + hd, 2.2, 2.2), OW_CREAM), (ell(12.4, 6.6 + hd, 1.2, 1.3), OW_EYE),
+             (rect(12, 6 + hd, 13, 8 + hd), OW_LINE), (rect(13, 8 + hd, 15, 9 + hd), rgb("#d97706")), shade=False),
+        Part((ell(5.5, 10.5, 1.4, 2.2), OW_BROWN), shade=False),
+    ]
+
+
+def owl_back(phase=0):
+    a, b = lifts(phase)
+    return [
+        Part((ell(4.2, 3.2, 1.3, 1.6), OW_TUFT), (ell(11.8, 3.2, 1.3, 1.6), OW_TUFT), outline=OW_LINE),
+        Part((ell(8, 6.2, 4.8, 4.2), OW_BROWN), outline=OW_LINE),
+        Part((ell(8, 10.5, 4.6, 4), OW_BROWN), outline=OW_LINE),
+        Part((rect(5, 14 - a, 7, 15 - a), OW_TUFT), (rect(9, 14 - b, 11, 15 - b), OW_TUFT), outline=OW_LINE, shade=False),
+    ]
+
+
+def owl_sleep():
+    return [
+        Part((ell(8, 12, 5.2, 3.2), OW_BROWN), outline=OW_LINE),
+        Part((ell(8, 9.2, 4.2, 3.2), OW_BROWN), outline=OW_LINE),
+        Part((ell(4.4, 7.2, 1.2, 1.4), OW_TUFT), (ell(11.6, 7.2, 1.2, 1.4), OW_TUFT), outline=OW_LINE),
+        Part((ell(8, 9.5, 3, 2), OW_CREAM), (rect(6, 9, 7, 10), OW_LINE), (rect(9, 9, 10, 10), OW_LINE),
+             (rect(7, 10, 9, 11), rgb("#d97706")), shade=False),
+    ]
+
+
+def owl_frames():
+    return (
+        [owl_front(p) for p in range(4)]
+        + [owl_side(p) for p in range(4)]
+        + [owl_back(p) for p in range(4)]
+        + [owl_sleep(), owl_front(wings=True), owl_side(hd=1), owl_back()]
+        + [owl_front(hd=d, blink=d == 1) for d in (0, 1, 1, 0)]
+    )
+
+
+# ---------------------------------------------------------------------------
+# Deer (32x32) — antlers, slender legs
+# ---------------------------------------------------------------------------
+
+DE_COAT, DE_BELLY, DE_DARK, DE_LINE = rgb("#c68642"), rgb("#f1d6b0"), rgb("#6b3e1c"), rgb("#4a2410")
+DE_ANTLER = rgb("#8d6e4c")
+
+
+def deer_antlers(hx, hy):
+    return Part(
+        (seg(13 + hx, hy - 1, 10 + hx, hy - 8, 1.2), DE_ANTLER),
+        (seg(10 + hx, hy - 5, 7 + hx, hy - 8, 1.1), DE_ANTLER),
+        (seg(11 + hx, hy - 4, 13 + hx, hy - 7, 1.0), DE_ANTLER),
+        (seg(19 + hx, hy - 1, 22 + hx, hy - 8, 1.2), DE_ANTLER),
+        (seg(22 + hx, hy - 5, 25 + hx, hy - 8, 1.1), DE_ANTLER),
+        (seg(21 + hx, hy - 4, 19 + hx, hy - 7, 1.0), DE_ANTLER),
+        outline=DE_LINE,
+    )
+
+
+def deer_front(u, phase=0, hd=0, hx=0, blink=False, ear=0):
+    a, b = lifts(phase)
+    hy = 9 + hd
+    return [
+        Part((rect(11, 22, 13, 30 - b), DE_COAT), (rect(19, 22, 21, 30 - a), DE_COAT), outline=DE_LINE),
+        Part((ell(16, 20, 7.5, 5.5), DE_COAT), (both(ell(16, 20, 7.5, 5.5), lambda x, y: y > 21.5), DE_BELLY),
+             (ell(13, 18, 0.8, 0.8), DE_BELLY), (ell(19, 18.5, 0.8, 0.8), DE_BELLY), outline=DE_LINE),
+        Part((rect(13, 21, 15, 30 - a), DE_COAT), (rect(17, 21, 19, 30 - b), DE_COAT), outline=DE_LINE),
+        Part((rect(14.5, hy + 3, 17.5, 17), DE_COAT), outline=DE_LINE),
+        deer_antlers(hx, hy),
+        Part((ell(12.2 + hx, hy - 1 - ear, 1.6, 1.8), DE_COAT), (ell(19.8 + hx, hy - 1 - ear, 1.6, 1.8), DE_COAT), outline=DE_LINE),
+        Part((ell(16 + hx, hy + 1, 4.4, 4), DE_COAT), outline=DE_LINE),
+        Part((ell(16 + hx, hy + 3.4, 2.6, 2), DE_BELLY),
+             *([] if blink else [(rect(13.5 + hx, hy, 14.5 + hx, hy + u), DE_LINE),
+                                 (rect(17.5 + hx, hy, 18.5 + hx, hy + u), DE_LINE)]),
+             (rect(15 + hx, hy + 3, 17 + hx, hy + 4), DE_DARK), shade=False),
+    ]
+
+
+def deer_side(u, phase=0, hd=0):
+    a, b = lifts(phase)
+    hy = 9 + hd
+    return [
+        Part((rect(8, 22, 10, 29 - a), DE_COAT), (rect(18, 22, 20, 29 - b), DE_COAT), outline=DE_LINE),
+        Part((seg(5, 17, 3, 24, 1.2), DE_COAT), (ell(3, 25, 1.2, 1.4), DE_DARK), outline=DE_LINE),
+        Part((ell(13, 19, 8.5, 5), DE_COAT), (both(ell(13, 19, 8.5, 5), lambda x, y: y > 21), DE_BELLY), outline=DE_LINE),
+        Part((rect(7, 21, 9, 30 - b), DE_COAT), (rect(16, 21, 18, 30 - a), DE_COAT), outline=DE_LINE),
+        Part((seg(18, 16, 23, hy + 2, 3.2), DE_COAT), outline=DE_LINE),
+        Part((seg(22, hy - 1, 24, hy - 8, 1.2), DE_ANTLER),
+             (seg(23, hy - 4, 27, hy - 6, 1.1), DE_ANTLER),
+             (seg(24, hy - 6, 26, hy - 9, 1.0), DE_ANTLER), outline=DE_LINE),
+        Part((ell(21.5, hy - 1, 1.5, 1.6), DE_COAT), outline=DE_LINE),
+        Part((ell(25.5, hy + 1, 4.2, 3.4), DE_COAT), outline=DE_LINE),
+        Part((ell(28.4, hy + 2.4, 2.2, 1.8), DE_BELLY), (rect(24, hy, 25, hy + u), DE_LINE),
+             (rect(29, hy + 2, 31, hy + 3), DE_DARK), shade=False),
+    ]
+
+
+def deer_back(u, phase=0, hx=0):
+    a, b = lifts(phase)
+    return [
+        deer_antlers(hx, 8),
+        Part((ell(12.2 + hx, 7, 1.6, 1.8), DE_COAT), (ell(19.8 + hx, 7, 1.6, 1.8), DE_COAT), outline=DE_LINE),
+        Part((ell(16 + hx, 9, 4.2, 3.6), DE_COAT), outline=DE_LINE),
+        Part((rect(14.5, 12, 17.5, 18), DE_COAT), outline=DE_LINE),
+        Part((ell(16, 20.5, 7.5, 5.5), DE_COAT), outline=DE_LINE),
+        Part((rect(12, 22, 14, 30 - a), DE_COAT), (rect(18, 22, 20, 30 - b), DE_COAT), outline=DE_LINE),
+        Part((seg(16, 24, 16, 28, 1.2), DE_COAT), (ell(16, 28.5, 1.3, 1.2), DE_DARK), outline=DE_LINE),
+    ]
+
+
+def deer_sleep(u):
+    hy = 14
+    return [
+        Part((ell(16, 25.5, 11, 4.4), DE_COAT), outline=DE_LINE),
+        Part((rect(14, hy + 2, 18, 23), DE_COAT), outline=DE_LINE),
+        deer_antlers(0, hy),
+        Part((ell(12, hy - 1, 1.6, 1.6), DE_COAT), (ell(20, hy - 1, 1.6, 1.6), DE_COAT), outline=DE_LINE),
+        Part((ell(16, hy + 1, 4.4, 4), DE_COAT), outline=DE_LINE),
+        Part((ell(16, hy + 3.4, 2.6, 2), DE_BELLY), (rect(13.5, hy, 15.5, hy + u), DE_LINE),
+             (rect(16.5, hy, 18.5, hy + u), DE_LINE), shade=False),
+    ]
+
+
+def deer_frames(u):
+    return (
+        [deer_front(u, p) for p in range(4)]
+        + [deer_side(u, p) for p in range(4)]
+        + [deer_back(u, p) for p in range(4)]
+        + [deer_sleep(u), deer_front(u, ear=1, blink=True), deer_side(u, hd=2), deer_back(u, hx=1)]
+        + [deer_front(u, hd=d) for d in (1, 2, 2, 1)]
+    )
+
+
+# ---------------------------------------------------------------------------
+# Night heron (32x32) — stocky, dark cap, long bill
+# ---------------------------------------------------------------------------
+
+NH_GRAY, NH_CAP, NH_CREAM, NH_BILL = rgb("#8d99ae"), rgb("#1d2433"), rgb("#efe6d2"), rgb("#2b2d42")
+NH_LEG, NH_LINE = rgb("#e9c46a"), rgb("#14161f")
+
+
+def heron_front(u, phase=0, hd=0, hx=0, blink=False, strike=False):
+    a, b = lifts(phase)
+    bill_y = 14 + hd if strike else 12 + hd
+    return [
+        Part((rect(13, 22, 15, 30 - b), NH_LEG), (rect(17, 22, 19, 30 - a), NH_LEG), outline=NH_LINE, shade=False),
+        Part((ell(16, 20, 7, 6), NH_GRAY), (both(ell(16, 20, 7, 6), lambda x, y: y > 21), NH_CREAM), outline=NH_LINE),
+        Part((rect(15, 12 + hd, 17, 16), NH_GRAY), outline=NH_LINE),
+        Part((ell(16 + hx, 9 + hd, 5.2, 4.6), NH_GRAY), outline=NH_LINE),
+        Part((ell(16 + hx, 8 + hd, 5, 3.2), NH_CAP), outline=NH_LINE),
+        Part((ell(16 + hx, 10.5 + hd, 4, 2.6), NH_CREAM),
+             *([] if blink else [(rect(13 + hx, 9 + hd, 14 + hx, 11 + hd), NH_LINE),
+                                 (rect(18 + hx, 9 + hd, 19 + hx, 11 + hd), NH_LINE)]), shade=False),
+        Part((rect(15 + hx, 11 + hd, 17 + hx, bill_y + 6), NH_BILL), (ell(16 + hx, bill_y + 6, 1.4, 1.2), NH_BILL), outline=NH_LINE),
+    ]
+
+
+def heron_side(u, phase=0, hd=0):
+    a, b = lifts(phase)
+    return [
+        Part((rect(12, 22, 14, 29 - a), NH_LEG), (rect(16, 22, 18, 30 - b), NH_LEG), outline=NH_LINE, shade=False),
+        Part((ell(13, 19, 7.5, 5.5), NH_GRAY), (both(ell(13, 19, 7.5, 5.5), lambda x, y: y > 21), NH_CREAM), outline=NH_LINE),
+        Part((seg(18, 16, 22, 11 + hd, 3), NH_GRAY), outline=NH_LINE),
+        Part((ell(23.5, 10 + hd, 4.4, 3.8), NH_GRAY), outline=NH_LINE),
+        Part((ell(23.5, 8.8 + hd, 4.2, 2.4), NH_CAP), outline=NH_LINE),
+        Part((ell(25.5, 11 + hd, 2.6, 2), NH_CREAM), (rect(24, 9 + hd, 25, 11 + hd), NH_LINE), shade=False),
+        Part((seg(26, 11.5 + hd, 31.5, 12.5 + hd, 1.8), NH_BILL), outline=NH_LINE),
+        Part((ell(8, 18, 2.2, 3.5), NH_GRAY), outline=NH_LINE),
+    ]
+
+
+def heron_back(u, phase=0, hx=0):
+    a, b = lifts(phase)
+    return [
+        Part((ell(16 + hx, 9, 5.2, 4.6), NH_CAP), outline=NH_LINE),
+        Part((rect(15, 13, 17, 16), NH_GRAY), outline=NH_LINE),
+        Part((ell(16, 20, 7, 6), NH_GRAY), outline=NH_LINE),
+        Part((ell(8, 18, 2.2, 3.5), NH_GRAY), (ell(24, 18, 2.2, 3.5), NH_GRAY), outline=NH_LINE),
+        Part((rect(13, 22, 15, 30 - a), NH_LEG), (rect(17, 22, 19, 30 - b), NH_LEG), outline=NH_LINE, shade=False),
+    ]
+
+
+def heron_sleep(u):
+    return [
+        Part((ell(12, 26, 3, 1.6), NH_LEG), (ell(20, 26, 3, 1.6), NH_LEG), outline=NH_LINE),
+        Part((ell(16, 22, 8, 4.5), NH_GRAY), outline=NH_LINE),
+        Part((ell(22, 18, 5, 4), NH_GRAY), outline=NH_LINE),
+        Part((ell(22, 16.5, 4.4, 2.2), NH_CAP), outline=NH_LINE),
+        Part((ell(24, 18.5, 2.4, 1.8), NH_CREAM), (rect(25, 18, 30, 19), NH_BILL), shade=False),
+    ]
+
+
+def heron_frames(u):
+    return (
+        [heron_front(u, p) for p in range(4)]
+        + [heron_side(u, p) for p in range(4)]
+        + [heron_back(u, p) for p in range(4)]
+        + [heron_sleep(u), heron_front(u, strike=True), heron_side(u, hd=2), heron_back(u, hx=1)]
+        + [heron_front(u, hd=d, blink=d == 2) for d in (1, 2, 2, 1)]
+    )
+
+
+# ---------------------------------------------------------------------------
 # Sheets
 # ---------------------------------------------------------------------------
 
@@ -1169,6 +1470,9 @@ def main():
         "Alpaca": (alpaca_frames, (0, 0, 32, 16)),
         "SeaLion": (sealion_frames, (0, 4, 32, 20)),
         "Bear": (bear_frames, (0, 2, 32, 18)),
+        "Flamingo": (flamingo_frames, (0, 0, 32, 16)),
+        "Deer": (deer_frames, (0, 0, 32, 16)),
+        "NightHeron": (heron_frames, (0, 2, 32, 18)),
     }
     for name, (frames, crop) in big.items():
         adult = build_sheet(frames(1), 32)
@@ -1182,6 +1486,7 @@ def main():
         "Penguin": (penguin_frames, chick_frames),
         "Monkey": (monkey_frames, None),
         "Raccoon": (raccoon_frames, None),
+        "Owl": (owl_frames, None),
     }
     for name, (adult_frames, baby_frames) in small.items():
         adult_sheet = build_sheet(adult_frames(), 16)

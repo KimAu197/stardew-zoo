@@ -31,5 +31,13 @@
   "animal.SeaLion.description": "水域展区里爱叫的表演者。",
   "animal.Bear.name": "熊",
   "animal.Bear.description": "森林里步履沉重、爱吃甜食的居民。",
+  "animal.Flamingo.name": "火烈鸟",
+  "animal.Flamingo.description": "水域展区里粉红的长腿涉禽。",
+  "animal.Owl.name": "猫头鹰",
+  "animal.Owl.description": "森林里竖着耳羽的夜行猎手。",
+  "animal.Deer.name": "鹿",
+  "animal.Deer.description": "森林里长着分叉鹿角的纤细食草动物。",
+  "animal.NightHeron.name": "夜鹫",
+  "animal.NightHeron.description": "水域展区里头顶深色、嘴巴很长的敦实水鸟。",
   "animal.missing-building": "需要动物园。请找罗宾建造。"
 }

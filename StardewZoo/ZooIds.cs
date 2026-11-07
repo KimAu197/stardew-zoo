@@ -23,6 +23,10 @@ public static class ZooIds
     public const string Alpaca = "StardewZoo.Alpaca";
     public const string SeaLion = "StardewZoo.SeaLion";
     public const string Bear = "StardewZoo.Bear";
+    public const string Flamingo = "StardewZoo.Flamingo";
+    public const string Owl = "StardewZoo.Owl";
+    public const string Deer = "StardewZoo.Deer";
+    public const string NightHeron = "StardewZoo.NightHeron";
 
     public const string TicketAction = "StardewZoo_TicketBooth";
     public const string ReviewAction = "StardewZoo_ReviewBoard";
@@ -32,7 +36,8 @@ public static class ZooIds
 
     public static readonly IReadOnlyList<string> AnimalTypes = new[]
     {
-        Penguin, Panda, Lion, Giraffe, Monkey, Capybara, Elephant, Dinosaur, Gorilla, Raccoon, Alpaca, SeaLion, Bear
+        Penguin, Panda, Lion, Giraffe, Monkey, Capybara, Elephant, Dinosaur, Gorilla, Raccoon, Alpaca, SeaLion, Bear,
+        Flamingo, Owl, Deer, NightHeron
     };
 
     public static bool IsZoo(string? buildingType)

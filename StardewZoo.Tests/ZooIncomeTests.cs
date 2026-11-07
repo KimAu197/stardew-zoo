@@ -73,6 +73,17 @@ public class ZooIncomeTests
     }
 
     [Fact]
+    public void NewAnimals_JoinExistingWaterAndForestPens()
+    {
+        Assert.Equal(ZooHabitats.Water, ZooHabitats.AnimalHabitat[ZooIds.Flamingo]);
+        Assert.Equal(ZooHabitats.Water, ZooHabitats.AnimalHabitat[ZooIds.NightHeron]);
+        Assert.Equal(ZooHabitats.Forest, ZooHabitats.AnimalHabitat[ZooIds.Owl]);
+        Assert.Equal(ZooHabitats.Forest, ZooHabitats.AnimalHabitat[ZooIds.Deer]);
+        Assert.Equal(1, ZooHabitats.CountFilled(new[] { ZooIds.Flamingo, ZooIds.NightHeron, ZooIds.SeaLion }));
+        Assert.Equal(1, ZooHabitats.CountFilled(new[] { ZooIds.Owl, ZooIds.Deer, ZooIds.Bear }));
+    }
+
+    [Fact]
     public void HighPrice_CutsDemand()
     {
         var cheap = new ModConfig { TicketPrice = 20 };

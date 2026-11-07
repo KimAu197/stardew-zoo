@@ -31,5 +31,13 @@
   "animal.SeaLion.description": "A barking show-off for the water habitat.",
   "animal.Bear.name": "Bear",
   "animal.Bear.description": "A lumbering forest resident with a sweet tooth.",
+  "animal.Flamingo.name": "Flamingo",
+  "animal.Flamingo.description": "A long-legged pink wader for the water habitat.",
+  "animal.Owl.name": "Owl",
+  "animal.Owl.description": "A tufted night hunter that perches in the forest.",
+  "animal.Deer.name": "Deer",
+  "animal.Deer.description": "A slender forest grazer with branching antlers.",
+  "animal.NightHeron.name": "Night Heron",
+  "animal.NightHeron.description": "A stocky water bird with a dark cap and a long bill.",
   "animal.missing-building": "Requires a Zoo. Ask Robin to build one."
 }

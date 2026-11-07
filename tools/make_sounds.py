@@ -72,6 +72,10 @@ ANIMALS = {
     "Alpaca": concat(tone(520, 0.35, 0.28), tone(560, 0.4, 0.22)),
     "SeaLion": concat(tone(480, 0.12, 0.4), tone(360, 0.18, 0.4), tone(500, 0.12, 0.4), tone(340, 0.25, 0.35)),
     "Bear": concat(saw(80, 0.55, 0.42), saw(60, 0.6, 0.38)),
+    "Flamingo": concat(tone(980, 0.12, 0.28), tone(720, 0.18, 0.3), tone(1100, 0.22, 0.25)),
+    "Owl": concat(tone(310, 0.35, 0.32), tone(240, 0.45, 0.28)),
+    "Deer": concat(tone(640, 0.18, 0.28), tone(480, 0.28, 0.26), tone(700, 0.16, 0.22)),
+    "NightHeron": concat(tone(860, 0.1, 0.3), tone(540, 0.16, 0.28), tone(780, 0.22, 0.26)),
 }
 
 
