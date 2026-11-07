@@ -1160,6 +1160,7 @@ VANILLA = {
     "winter": ("winter_outdoorsTileSheet.png", 25),
     "island": ("island_tilesheet_1.png", 32),
     "town": ("spring_town.png", 32),
+    "interior": ("townInterior.png", 32),
 }
 
 
@@ -1310,12 +1311,14 @@ def build_objects(zs: ZooSheet):
 # ---------------------------------------------------------------------------
 
 # low -> high priority; a higher terrain is drawn over lower ones.
-PRIORITY = "gkyrmscvnihwpq"
+# x = void (no Back tile); a b e f = pavilion walkway floors (draw_pavilions.floor_textures).
+PRIORITY = "xgkyrmscvnihwpqabef"
 WATERY = set("hw")
 GRASSY = set("gky")
 SOILS = set("rmscdv")
 AMP = {"g": 0, "k": 0.17, "y": 0.17, "r": 0.1, "m": 0.12, "s": 0.08, "c": 0.06, "v": 0.08,
-       "n": 0.1, "i": 0.05, "h": 0.07, "w": 0.06, "p": 0.015, "q": 0.0}
+       "n": 0.1, "i": 0.05, "h": 0.07, "w": 0.06, "p": 0.015, "q": 0.0,
+       "x": 0.0, "a": 0.0, "b": 0.0, "e": 0.0, "f": 0.0}
 
 
 def prio(t):

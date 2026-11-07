@@ -11,24 +11,31 @@ Layering rules:
     a prop's bottom row is baked into Back, upper rows go on Front, canopies on AlwaysFront;
   - plaza / park props use Buildings for their footprint and Front above it.
 
+The map is one AnimalHouse split into isolated regions (see zoo_layout.py): the open-air
+park plus four walk-in pavilion interiors (make_pavilions.py) surrounded by void.
+
 Usage: python3 tools/make_map.py
 """
 
 import random
 from pathlib import Path
 
+from PIL import Image
+
+import make_pavilions
+from draw_pavilions import build_pavilion_objects, extend_blender
 from draw_tiles import OUT as ZOO_PNG
 from draw_tiles import PRIORITY, TerrainBlender, ZooSheet, build_objects, hnoise, save_preview
-from zoo_layout import (BOARD, BOOTH, HABITATS, HAY, MAP_H, MAP_W, STUDIO, WARP_TILES, ZOO_PERCHES)
+from zoo_layout import (BOARD, BOOTH, FACADES, HABITATS, HAY, MAP_H, MAP_W, OPEN_PENS, OUTDOOR, PATHS, PAVILIONS,
+                        PRODUCE_AREA, REGIONS, STUDIO, WARP_TILES, ZOO_PERCHES, facade_door, inside_door,
+                        write_csharp)
 
 ROOT = Path(__file__).resolve().parent.parent
 ASSETS = ROOT / "[CP] Stardew Zoo" / "assets"
 LAYERS = ("Back", "Buildings", "Front", "AlwaysFront")
 
-# Harmless open rectangle (x y w h); AnimalHouse logs a parse warning without it.
-PRODUCE_AREA = (13, 13, 2, 5)
-
 PERCH_HEIGHT = {"palm": 3, "oak": 4, "snag": 2.5}
+TOUCH_ACTION = "StardewZoo_Pavilion"
 
 
 class Sheet:
@@ -98,24 +105,23 @@ def I(t):
 
 def build_cells():
     """One letter per cell (see draw_tiles.PRIORITY)."""
-    t = [["g"] * MAP_W for _ in range(MAP_H)]
+    t = [["x"] * MAP_W for _ in range(MAP_H)]
 
     def fill(x0, y0, x1, y1, c):
         for y in range(y0, y1 + 1):
             for x in range(x0, x1 + 1):
                 t[y][x] = c
 
-    for y in (1, 11, 21, 28):
-        fill(1, y, 36, y, "p")
-    fill(1, 1, 1, 28, "p")
-    fill(36, 1, 36, 28, "p")
-    fill(18, 1, 19, MAP_H - 1, "p")
-    fill(14, 12, 23, 20, "p")
+    ox, oy, ow, oh = OUTDOOR
+    fill(ox, oy, ox + ow - 1, oy + oh - 1, "g")
+    for x, y, w, h in PATHS:
+        fill(x, y, x + w - 1, y + h - 1, "p")
     fill(15, 13, 22, 19, "q")
 
-    base = {"Ice": "n", "Water": "g", "Savanna": "y", "Jungle": "k", "Forest": "g", "Prehistoric": "v"}
-    for name, (x, y, w, h) in HABITATS.items():
+    base = {"Savanna": "y", "Forest": "g"}
+    for name, (x, y, w, h) in OPEN_PENS.items():
         fill(x, y, x + w - 1, y + h - 1, base[name])
+    make_pavilions.cells(t)
     return t
 
 
@@ -140,26 +146,15 @@ def blob(V, pen, cx, cy, rx, ry, terrain, seed=0):
 
 
 def paint_pens(V):
-    blob(V, "Ice", 8.5, 6.5, 3.6, 2.5, "i", 1)
-    blob(V, "Ice", 9.0, 6.6, 2.2, 1.6, "w", 2)
-
-    blob(V, "Water", 30.6, 6.4, 4.6, 3.0, "s", 3)
-    blob(V, "Water", 30.2, 6.5, 3.7, 2.4, "h", 4)
-    blob(V, "Water", 31.6, 6.4, 3.3, 2.1, "w", 5)
-
     blob(V, "Savanna", 5.5, 16.6, 2.3, 1.4, "r", 6)
     blob(V, "Savanna", 10.2, 14.4, 1.4, 1.0, "r", 7)
     blob(V, "Savanna", 9.6, 17.3, 2.0, 1.2, "h", 8)
     blob(V, "Savanna", 9.6, 17.4, 1.3, 0.7, "w", 9)
 
-    blob(V, "Jungle", 30.5, 17.3, 2.2, 1.1, "m", 10)
-    blob(V, "Jungle", 28.3, 14.5, 1.3, 0.9, "m", 11)
-
     blob(V, "Forest", 6.5, 24.6, 2.6, 1.0, "k", 12)
     blob(V, "Forest", 10.6, 24.4, 1.4, 1.0, "k", 13)
 
-    blob(V, "Prehistoric", 29.0, 24.5, 2.2, 1.0, "c", 14)
-    blob(V, "Prehistoric", 33.5, 25.0, 1.6, 1.0, "c", 15)
+    make_pavilions.paint(V, blob)
 
 
 # ---------------------------------------------------------------------------
@@ -264,7 +259,7 @@ def scatter(m, rng, pen, decals, count, ok, layer="Back"):
 
 
 def fences(m):
-    for name, (x, y, w, h) in HABITATS.items():
+    for name, (x, y, w, h) in OPEN_PENS.items():
         left, right, top, bottom = x - 1, x + w, y - 1, y + h
         gate = x + w // 2
 
@@ -292,27 +287,6 @@ def fences(m):
 def pens(m, rng):
     allin = lambda *ts: (lambda cs: all(c in ts for c in cs))
 
-    # Ice: snow field, frozen pond with an open pool, igloo, ice blocks, drifts.
-    m.obj("igloo", 4, 3, ["Front", "Back"])
-    m.obj("ice_block", 11, 3, "Back")
-    m.obj("icy_rock", 4, 8, "Back")
-    m.obj("ice_block", 3, 6, "Back")
-    m.obj("ice_block", 10, 3, "Back")
-    m.obj("icy_rock", 11, 8, "Back")
-    m.obj("icy_rock", 7, 3, "Back")
-    scatter(m, rng, "Ice", ["snow_drift", "snow_drift", "ice_block"], 7, allin("n"))
-    scatter(m, rng, "Ice", ["ice_crack"], 4, allin("i"))
-
-    # Water: grass -> sand beach -> shallow wading shelf (west) -> deep animated pond.
-    m.obj("reeds", 27, 3, ["Front", "Back"])
-    m.obj("reeds", 34, 7, ["Front", "Back"])
-    m.obj("reeds", 26, 7, ["Front", "Back"])
-    m.obj("basking_rock", 32, 4, "Back")
-    m.obj("water_rock", 28, 7, "Back")
-    scatter(m, rng, "Water", ["lily", "lily_flower"], 4,
-            lambda cs: "w" in cs and any(c != "w" for c in cs))
-    scatter(m, rng, "Water", ["grass_tuft"], 3, allin("g", "s"))
-
     # Savanna: dry grass, red earth, watering hole, acacia, termite mounds.
     m.obj("acacia", 7, 12, ["AlwaysFront", "AlwaysFront", "Front", "Back"])
     m.obj("termite", 4, 13, ["Front", "Back"])
@@ -320,14 +294,6 @@ def pens(m, rng):
     m.obj("savanna_rock", 6, 18, "Back")
     m.obj("savanna_rock", 3, 15, "Back")
     scatter(m, rng, "Savanna", ["tuft_a", "tuft_b"], 9, allin("y", "r"))
-
-    # Jungle: palms (climbable), mud, ferns, leaf litter, vines, flowers.
-    for (px, py) in ZOO_PERCHES["Jungle"]:
-        m.palm(px, py, vines=True)
-    for fx, fy in ((29, 13), (33, 13), (26, 18), (29, 16)):
-        m.put("Back", fx, fy, I(FERNS[(fx + fy) % 2]))
-        m.used.add((fx, fy))
-    scatter(m, rng, "Jungle", ["litter_a", "litter_b", "vine", "tropical_flower"], 9, allin("k", "m"))
 
     # Forest: two oaks + a dead snag for owls, fallen log, stump, moss, mushrooms.
     (ax, ay), (bx, by), (sx, sy) = ZOO_PERCHES["Forest"]
@@ -338,14 +304,9 @@ def pens(m, rng):
     m.obj("stump", 11, 24, "Back")
     scatter(m, rng, "Forest", ["moss", "mushrooms", "litter_a", "moss"], 6, allin("g", "k"))
 
-    # Prehistoric: volcanic ground, cracked earth, giant ferns, bones, steaming vent.
-    m.obj("giant_fern", 26, 22, ["Front", "Back"])
-    m.obj("giant_fern", 33, 23, ["Front", "Back"])
-    m.obj("vent", 31, 23, ["Front", "Back"])
-    m.obj("ribcage", 28, 25, "Back")
-    m.obj("skull", 33, 25, "Back")
-    m.obj("bone", 30, 24, "Back")
-    scatter(m, rng, "Prehistoric", ["volcanic_rock_a", "volcanic_rock_b", "cracks"], 5, allin("v", "c"))
+    # Ice, Water, Jungle, Prehistoric live in their walk-in pavilions.
+    make_pavilions.facades(m)
+    make_pavilions.interiors(m, rng, scatter, FERNS, I)
 
 
 def strips(m):
@@ -404,6 +365,11 @@ def lawns(m):
     m.obj("planter_yellow", 13, 27, "Buildings")
     m.obj("planter_yellow", 24, 27, "Buildings")
 
+    # beside the ice pavilion (the old pen fence ring)
+    for y in (3, 6, 9):
+        m.obj("planter_blue", 2, y, "Buildings")
+        m.obj("planter_blue", 12, y, "Buildings")
+
 
 def plaza(m):
     # booth / board / studio: bottom rows on Buildings carry the Action tiles
@@ -438,6 +404,7 @@ def action_tiles(zs):
 def build(zs):
     rng = random.Random(1234)
     blender = TerrainBlender(zs)
+    extend_blender(blender, zs)
     zs.vanilla_anims.update({("outdoors", t): WATER_FRAMES[i:] + WATER_FRAMES[:i]
                              for i, t in enumerate(WATER_FRAMES)})
 
@@ -446,14 +413,18 @@ def build(zs):
     paint_pens(V)
 
     m = ZooMap(zs)
+    m.terrain = cells
     m.corners = [[(V[y][x], V[y][x + 1], V[y + 1][x], V[y + 1][x + 1]) for x in range(MAP_W)] for y in range(MAP_H)]
     for y in range(MAP_H):
         for x in range(MAP_W):
-            m.put("Back", x, y, blender.tile(m.corners[y][x], rng))
+            if cells[y][x] != "x":
+                m.put("Back", x, y, blender.tile(m.corners[y][x], rng))
 
-    for x in range(MAP_W):
-        for y in range(MAP_H):
-            if (x in (0, MAP_W - 1) or y in (0, MAP_H - 1)) and not (y == MAP_H - 1 and x in (18, 19)):
+    ox, oy, ow, oh = OUTDOOR
+    for x in range(ox, ox + ow):
+        for y in range(oy, oy + oh):
+            edge = x in (ox, ox + ow - 1) or y in (oy, oy + oh - 1)
+            if edge and not (y == oy + oh - 1 and x in (18, 19)):
                 m.put("Buildings", x, y, O(BORDER_BUSH))
     fences(m)
     plaza(m)
@@ -527,15 +498,23 @@ def write_tmx(zs, m, resolved):
 
     perch_objs = []
     oid = 4
-    kinds = {"Jungle": ["palm"] * 3, "Forest": ["oak", "oak", "snag"]}
+
+    def tile_data(x, y, name, value):
+        nonlocal oid
+        perch_objs.append(
+            f'    <object id="{oid}" name="TileData" x="{x * 16}" y="{y * 16}" width="16" height="16">\n'
+            f'      <properties>\n'
+            f'        <property name="{name}" type="string" value="{value}" />\n'
+            f'      </properties>\n    </object>')
+        oid += 1
+
+    kinds = {"Jungle": ["palm"] * len(ZOO_PERCHES["Jungle"]), "Forest": ["oak", "oak", "snag"]}
     for pen, spots in ZOO_PERCHES.items():
         for (x, y), kind in zip(spots, kinds[pen]):
-            perch_objs.append(
-                f'    <object id="{oid}" name="TileData" x="{x * 16}" y="{y * 16}" width="16" height="16">\n'
-                f'      <properties>\n'
-                f'        <property name="ZooPerch" type="string" value="{PERCH_HEIGHT[kind]}" />\n'
-                f'      </properties>\n    </object>')
-            oid += 1
+            tile_data(x, y, "ZooPerch", PERCH_HEIGHT[kind])
+    for name in PAVILIONS:
+        tile_data(*facade_door(name), "TouchAction", f"{TOUCH_ACTION} {name} In")
+        tile_data(*inside_door(name), "TouchAction", f"{TOUCH_ACTION} {name} Out")
 
     def layer_xml(i, name):
         return (f'  <layer id="{i}" name="{name}" width="{MAP_W}" height="{MAP_H}">\n'
@@ -548,6 +527,7 @@ def write_tmx(zs, m, resolved):
     <property name="AmbientLight" type="string" value="255 255 255" />
     <property name="Light" type="string" value="{lights}" />
     <property name="ProduceArea" type="string" value="{produce}" />
+    <property name="StardewZooLocation" type="string" value="T" />
     <property name="Warp" type="string" value="{warp}" />
   </properties>
 {nl.join(tileset_xml)}
@@ -582,13 +562,16 @@ def write_tmx(zs, m, resolved):
 def main():
     zs = ZooSheet()
     build_objects(zs)
+    build_pavilion_objects(zs, FACADES, REGIONS)
+    zs.blank = zs.add([Image.new("RGBA", (16, 16), (0, 0, 0, 0))])
     m = build(zs)
     resolved = m.resolve()
     path, zsheet = write_tmx(zs, m, resolved)
     save_preview(zs)
+    cs = write_csharp()
     from render_map import render_tmx
-    render_tmx(path, Path(__file__).resolve().parent / "previews" / "zoo_map.png", scale=2)
-    print(f"Wrote map {MAP_W}x{MAP_H} to {path}; zoo_tiles {zsheet.size} ({len(zs.images)} tiles)")
+    render_tmx(path, Path(__file__).resolve().parent / "previews" / "zoo_map.png", scale=1, crop=(0, 0, OUTDOOR[2] * 16, OUTDOOR[3] * 16))
+    print(f"Wrote map {MAP_W}x{MAP_H} to {path}; zoo_tiles {zsheet.size} ({len(zs.images)} tiles); {cs.name}")
 
 
 if __name__ == "__main__":
