@@ -12,8 +12,8 @@
 
 ## Global Constraints
 
-- Repo root: `/Users/kenzieluo/Desktop/code/others/stardew_valley` (all relative paths below are from here).
-- Game folder (`$GAME`): `/Users/kenzieluo/Library/Application Support/Steam/steamapps/common/Stardew Valley/Contents/MacOS`
+- Repo root: `<repo>` (the root of this repository; all relative paths below are from here).
+- Game folder (`$GAME`): `~/Library/Application Support/Steam/steamapps/common/Stardew Valley/Contents/MacOS`
 - Unpacked vanilla content: `$GAME/Content (unpacked)` (already produced by StardewXnbHack).
 - .NET 6 SDK lives in `~/.dotnet`. Every shell that runs `dotnet` must first run:
   `export DOTNET_ROOT="$HOME/.dotnet" PATH="$HOME/.dotnet:$PATH"`

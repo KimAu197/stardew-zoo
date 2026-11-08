@@ -216,4 +216,4 @@ deploy.sh              macOS build-and-install helper
 
 ## License
 
-License: TBD. No license has been chosen yet, so all rights are reserved for now.
+Released under the [MIT License](LICENSE).
